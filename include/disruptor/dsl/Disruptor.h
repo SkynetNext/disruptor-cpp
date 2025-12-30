@@ -30,6 +30,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -38,11 +39,6 @@
 #include <vector>
 
 namespace disruptor::dsl {
-
-// Default batch size for BatchEventProcessor, matches group size
-// (msgsInGroupLimit) to ensure timely sequence updates and prompt notification
-// to downstream processors
-static constexpr int DEFAULT_BATCH_SIZE = 32;
 
 template <typename T, ProducerType Producer, typename WaitStrategyT>
 class Disruptor {
@@ -339,11 +335,11 @@ private:
     auto barrier = ringBuffer_->newBarrier(barrierSequences, barrierCount);
     ownedBarriers_.push_back(barrier);
     // Java uses BatchEventProcessorBuilder to configure max batch size; we use
-    // DEFAULT_BATCH_SIZE here to match group size (msgsInGroupLimit) for timely
-    // sequence updates. This ensures processors (especially ME) notify
-    // downstream (R2) promptly instead of processing multiple groups at once
+    // default max here. (If/when DSL exposes builder configuration, wire it
+    // through.)
     auto processor = std::make_shared<BatchEventProcessor<T, BarrierT>>(
-        *ringBuffer_, *barrier, handler, DEFAULT_BATCH_SIZE, nullptr);
+        *ringBuffer_, *barrier, handler, std::numeric_limits<int>::max(),
+        nullptr);
     // Apply default exception handler if it is wrapper or concrete.
     processor->setExceptionHandler(getExceptionHandler());
     auto &seq = processor->getSequence();
