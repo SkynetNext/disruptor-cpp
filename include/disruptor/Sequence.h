@@ -9,8 +9,8 @@ namespace disruptor {
 
 // Java reference (for padding intent):
 //   reference/disruptor/src/main/java/com/lmax/disruptor/Sequence.java
-// Java uses padding superclasses to reduce false sharing around the hot `value` field.
-// We mirror the structure in C++.
+// Java uses padding superclasses to reduce false sharing around the hot `value`
+// field. We mirror the structure in C++.
 namespace detail {
 
 // Java: Sequence.INITIAL_VALUE = -1L
@@ -36,7 +36,7 @@ struct RhsPadding : Value {
 
 } // namespace detail
 
-class Sequence : public detail::RhsPadding {
+class alignas(256) Sequence : public detail::RhsPadding {
 public:
   static constexpr int64_t INITIAL_VALUE = -1;
 
@@ -46,16 +46,16 @@ public:
 
   // Java: long value = this.value; VarHandle.acquireFence(); return value;
   // Java reads a plain field (not volatile), then executes acquireFence.
-  // This allows reading a "slightly stale" value, which may reduce memory barrier overhead.
-  // C++: Match Java semantics - relaxed load + acquire fence.
+  // This allows reading a "slightly stale" value, which may reduce memory
+  // barrier overhead. C++: Match Java semantics - relaxed load + acquire fence.
   virtual int64_t get() const {
     int64_t value = value_.load(std::memory_order_relaxed);
     std::atomic_thread_fence(std::memory_order_acquire);
     return value;
   }
   // Java: VarHandle.releaseFence(); this.value = value;
-  // Java executes release fence first, then writes to plain field (not volatile).
-  // C++: Match Java semantics - release fence + relaxed store.
+  // Java executes release fence first, then writes to plain field (not
+  // volatile). C++: Match Java semantics - release fence + relaxed store.
   virtual void set(int64_t v) {
     std::atomic_thread_fence(std::memory_order_release);
     value_.store(v, std::memory_order_relaxed);
@@ -91,5 +91,3 @@ public:
 };
 
 } // namespace disruptor
-
-
