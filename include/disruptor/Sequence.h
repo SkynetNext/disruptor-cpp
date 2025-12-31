@@ -44,25 +44,33 @@ public:
   explicit Sequence(int64_t initial) noexcept : detail::RhsPadding(initial) {}
   virtual ~Sequence() = default;
 
-  // C++ best practice: Use acquire semantics directly for reads.
-  // This ensures all prior writes by other threads are visible.
-  virtual int64_t get() const { return value_.load(std::memory_order_acquire); }
-
-  // C++ best practice: Use release semantics directly for writes.
-  // This ensures all prior writes by this thread are visible to other threads.
-  virtual void set(int64_t v) { value_.store(v, std::memory_order_release); }
-
-  // C++ best practice: Use seq_cst for full ordering guarantees.
-  // This provides both release and acquire semantics plus total ordering.
-  virtual void setVolatile(int64_t v) {
-    value_.store(v, std::memory_order_seq_cst);
+  // Java: long value = this.value; VarHandle.acquireFence(); return value;
+  // Java reads a plain field (not volatile), then executes acquireFence.
+  // This allows reading a "slightly stale" value, which may reduce memory
+  // barrier overhead. C++: Match Java semantics - relaxed load + acquire fence.
+  virtual int64_t get() const {
+    int64_t value = value_.load(std::memory_order_relaxed);
+    std::atomic_thread_fence(std::memory_order_acquire);
+    return value;
+  }
+  // Java: VarHandle.releaseFence(); this.value = value;
+  // Java executes release fence first, then writes to plain field (not
+  // volatile). C++: Match Java semantics - release fence + relaxed store.
+  virtual void set(int64_t v) {
+    std::atomic_thread_fence(std::memory_order_release);
+    value_.store(v, std::memory_order_relaxed);
   }
 
-  // C++ best practice: Use weak version in loops, strong for single attempts.
-  // Weak allows spurious failures but may be faster on LL/SC architectures
-  // (ARM, PowerPC). Since compareAndSet is typically used in retry loops (see
-  // MultiProducerSequencer), weak is the better choice here. The loop will
-  // naturally handle spurious failures.
+  // Java: setVolatile - used as StoreLoad fence.
+  // Java: VarHandle.releaseFence(); this.value = value; VarHandle.fullFence();
+  // C++: Matches Java semantics - release fence + relaxed store + full fence.
+  // This pattern may provide better performance than a single seq_cst store.
+  virtual void setVolatile(int64_t v) {
+    std::atomic_thread_fence(std::memory_order_release);
+    value_.store(v, std::memory_order_relaxed);
+    std::atomic_thread_fence(std::memory_order_seq_cst);
+  }
+
   virtual bool compareAndSet(int64_t expected, int64_t desired) {
     return value_.compare_exchange_weak(expected, desired,
                                         std::memory_order_acq_rel,
