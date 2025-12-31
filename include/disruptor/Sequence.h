@@ -58,12 +58,15 @@ public:
     value_.store(v, std::memory_order_seq_cst);
   }
 
-  // C++ best practice: Use acq_rel for success, acquire for failure.
-  // This is the standard pattern for CAS operations.
+  // C++ best practice: Use weak version in loops, strong for single attempts.
+  // Weak allows spurious failures but may be faster on LL/SC architectures
+  // (ARM, PowerPC). Since compareAndSet is typically used in retry loops (see
+  // MultiProducerSequencer), weak is the better choice here. The loop will
+  // naturally handle spurious failures.
   virtual bool compareAndSet(int64_t expected, int64_t desired) {
-    return value_.compare_exchange_strong(expected, desired,
-                                          std::memory_order_acq_rel,
-                                          std::memory_order_acquire);
+    return value_.compare_exchange_weak(expected, desired,
+                                        std::memory_order_acq_rel,
+                                        std::memory_order_acquire);
   }
 
   virtual int64_t incrementAndGet() {
