@@ -44,9 +44,11 @@ TEST(DisruptorStressTest, shouldHandleLotsOfThreads_smoke) {
   using WS = disruptor::BusySpinWaitStrategy;
   auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
-  disruptor::dsl::Disruptor<TestEvent, disruptor::dsl::ProducerType::MULTI, WS> d(TestEvent::FACTORY, 1 << 12, tf, ws);
-
+  
+  // ⚠️ FIX: Move fatal BEFORE disruptor to ensure it outlives the disruptor and all threads
   disruptor::FatalExceptionHandler<TestEvent> fatal;
+  
+  disruptor::dsl::Disruptor<TestEvent, disruptor::dsl::ProducerType::MULTI, WS> d(TestEvent::FACTORY, 1 << 12, tf, ws);
   d.setDefaultExceptionHandler(fatal);
 
   constexpr int threads = 2;
@@ -108,4 +110,6 @@ TEST(DisruptorStressTest, shouldHandleLotsOfThreads_smoke) {
     EXPECT_GT(h.messagesSeen, 0);
     EXPECT_EQ(h.failureCount, 0);
   }
+  
+  // ⚠️ FIX: fatal will be destructed AFTER d, handlers, and all threads have finished
 }
