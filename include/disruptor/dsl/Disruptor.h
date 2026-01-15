@@ -48,7 +48,11 @@ public:
     // without crashing the JVM. In C++, destroying a joinable std::thread
     // triggers std::terminate, so we must always join.
     try {
-      halt();
+      // Only call halt() if not already halted - avoids accessing potentially
+      // dangling pointers to processors that may have been destroyed
+      if (!halted_) {
+        halt();
+      }
       // After halt(), we still need to join threads to avoid std::terminate
       consumerRepository_.joinAll();
     } catch (...) {
@@ -180,7 +184,10 @@ public:
     return ringBuffer_;
   }
 
-  void halt() { consumerRepository_.haltAll(); }
+  void halt() {
+    halted_ = true;
+    consumerRepository_.haltAll();
+  }
   void join() { consumerRepository_.joinAll(); }
 
   void shutdown() {
@@ -278,6 +285,7 @@ private:
   std::vector<std::shared_ptr<EventProcessor>> ownedProcessors_;
   ConsumerRepository<BarrierPtr> consumerRepository_;
   std::atomic<bool> started_;
+  bool halted_ = false;  // Track if halt() was called to avoid dangling pointer access in destructor
   std::unique_ptr<ExceptionHandler<T>> exceptionHandler_;
   ExceptionHandler<T> *exceptionHandlerPtr_{
       nullptr}; // Points to external handler when handleExceptionsWith is used

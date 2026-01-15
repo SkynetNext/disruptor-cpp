@@ -478,26 +478,30 @@ TEST(DisruptorTest, shouldMakeEntriesAvailableToFirstHandlersImmediately) {
 TEST(DisruptorTest, shouldAddEventProcessorsAfterPublishing) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
+  using DisruptorT = disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS>;
   auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
-  disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
+  
+  // Handlers must be declared before Disruptor
+  disruptor::dsl::stubs::SleepingEventHandler handler1;
+  disruptor::dsl::stubs::SleepingEventHandler handler2;
+  disruptor::dsl::stubs::SleepingEventHandler handler3;
+  
+  auto d = std::make_unique<DisruptorT>(
       disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
-  auto &ringBuffer = d.getRingBuffer();
-  disruptor::dsl::stubs::SleepingEventHandler handler1;
+  auto &ringBuffer = d->getRingBuffer();
   disruptor::BatchEventProcessorBuilder builder1;
   auto barrier1 = ringBuffer.newBarrier();
   auto b1 = builder1.build(ringBuffer, *barrier1, handler1);
 
   disruptor::Sequence *seqs1[] = {&b1->getSequence()};
   auto barrier2 = ringBuffer.newBarrier(seqs1, 1);
-  disruptor::dsl::stubs::SleepingEventHandler handler2;
   disruptor::BatchEventProcessorBuilder builder2;
   auto b2 = builder2.build(ringBuffer, *barrier2, handler2);
 
   disruptor::Sequence *seqs2[] = {&b2->getSequence()};
   auto barrier3 = ringBuffer.newBarrier(seqs2, 1);
-  disruptor::dsl::stubs::SleepingEventHandler handler3;
   disruptor::BatchEventProcessorBuilder builder3;
   auto b3 = builder3.build(ringBuffer, *barrier3, handler3);
 
@@ -516,14 +520,15 @@ TEST(DisruptorTest, shouldAddEventProcessorsAfterPublishing) {
   std::vector<std::shared_ptr<disruptor::EventProcessor>> keptProcessors = {
       b1, b2, b3};
   disruptor::EventProcessor *processors[] = {b1.get(), b2.get(), b3.get()};
-  d.handleEventsWith(processors, 3);
+  d->handleEventsWith(processors, 3);
 
   EXPECT_EQ(5, b1->getSequence().get());
   EXPECT_EQ(5, b2->getSequence().get());
   EXPECT_EQ(5, b3->getSequence().get());
 
-  d.halt();
-  d.join();  // Wait for consumer threads to finish before handlers are destroyed
+  d->halt();
+  d->join();
+  d.reset();  // Destroy Disruptor before handlers go out of scope
 }
 
 TEST(DisruptorTest, shouldSetSequenceForHandlerIfAddedAfterPublish) {
