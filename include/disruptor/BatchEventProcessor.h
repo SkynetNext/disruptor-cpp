@@ -202,13 +202,13 @@ private:
     getExceptionHandler()->handleOnShutdownException(ex);
   }
 
-  std::shared_ptr<ExceptionHandler<T>> getExceptionHandler() {
+  ExceptionHandler<T>* getExceptionHandler() {
     // Java: handler == null ? ExceptionHandlers.defaultHandler() : handler;
     if (exceptionHandler_ == nullptr) {
-      return ExceptionHandlers::defaultHandler<T>();
+      return ExceptionHandlers::defaultHandler<T>().get();
     }
-    // Non-owning pointer -> wrap without deleting.
-    return std::shared_ptr<ExceptionHandler<T>>(exceptionHandler_, [](ExceptionHandler<T>*) {});
+    // Non-owning pointer.
+    return exceptionHandler_;
   }
 
   class TryRewindHandler final : public RewindHandler {
