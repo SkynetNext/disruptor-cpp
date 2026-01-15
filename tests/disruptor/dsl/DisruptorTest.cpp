@@ -465,10 +465,11 @@ TEST(DisruptorTest, shouldMakeEntriesAvailableToFirstHandlersImmediately) {
 
   d.handleEventsWith(delayedEventHandler, eventHandler);
 
-  std::vector<disruptor::dsl::stubs::DelayedEventHandler *> deps;
-  deps.push_back(&delayedEventHandler);
+  // Java: ensureTwoEventsProcessedAccordingToDependencies(countDownLatch) - no dependencies
+  // The EventHandlerStub processes events in parallel with DelayedEventHandler
+  std::vector<disruptor::dsl::stubs::DelayedEventHandler *> noDeps;
   helper.ensureTwoEventsProcessedAccordingToDependencies(d, countDownLatch,
-                                                         deps);
+                                                         noDeps);
 
   helper.tearDown(); // Java: @AfterEach tearDown()
   d.halt();
