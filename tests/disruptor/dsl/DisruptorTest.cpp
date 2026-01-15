@@ -222,20 +222,23 @@ TEST(DisruptorTest, shouldSupportMultipleCustomProcessorsAsDependencies) {
   using WS = disruptor::BlockingWaitStrategy;
   auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
+  
+  // ⚠️ CRITICAL: All handlers and barriers must be declared BEFORE Disruptor
+  // to ensure they outlive the Disruptor and all threads that reference them.
+  disruptor::test_support::CountDownLatch countDownLatch(2);
+  disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(countDownLatch);
+  disruptor::dsl::stubs::DelayedEventHandler delayedEventHandler1;
+  disruptor::dsl::stubs::DelayedEventHandler delayedEventHandler2;
+  
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
       disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   auto &ringBuffer = d.getRingBuffer();
-  disruptor::test_support::CountDownLatch countDownLatch(2);
-  disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(
-      countDownLatch);
 
-  disruptor::dsl::stubs::DelayedEventHandler delayedEventHandler1;
   disruptor::BatchEventProcessorBuilder builder1;
   auto barrier1 = ringBuffer.newBarrier();
   auto processor1 = builder1.build(ringBuffer, *barrier1, delayedEventHandler1);
 
-  disruptor::dsl::stubs::DelayedEventHandler delayedEventHandler2;
   disruptor::BatchEventProcessorBuilder builder2;
   auto barrier2 = ringBuffer.newBarrier();
   auto processor2 = builder2.build(ringBuffer, *barrier2, delayedEventHandler2);
