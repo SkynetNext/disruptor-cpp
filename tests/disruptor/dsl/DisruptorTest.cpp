@@ -192,6 +192,7 @@ TEST(DisruptorTest, shouldHaveStartedAfterStartCalled) {
   d.start();
   EXPECT_TRUE(d.hasStarted());
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldProcessMessagesPublishedBeforeStartIsCalled) {
@@ -213,6 +214,7 @@ TEST(DisruptorTest, shouldProcessMessagesPublishedBeforeStartIsCalled) {
 
   latch.await();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldSupportMultipleCustomProcessorsAsDependencies) {
@@ -264,6 +266,7 @@ TEST(DisruptorTest, shouldSupportMultipleCustomProcessorsAsDependencies) {
   delayedEventHandler1.stopWaiting();
   delayedEventHandler2.stopWaiting();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest,
@@ -315,6 +318,7 @@ TEST(DisruptorTest,
   countDownLatch.await();
   helper.tearDown();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldHonourDependenciesForCustomProcessors) {
@@ -370,6 +374,7 @@ TEST(DisruptorTest, shouldHonourDependenciesForCustomProcessors) {
 
   helper.tearDown();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldBatchOfEvents) {
@@ -392,6 +397,7 @@ TEST(DisruptorTest, shouldBatchOfEvents) {
 
   eventCounter.await();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldHandleEventsWithRewindableEventHandlers) {
@@ -432,6 +438,7 @@ TEST(DisruptorTest, shouldHandleEventsWithRewindableEventHandlers) {
 
   eventCounter.await();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldMakeEntriesAvailableToFirstHandlersImmediately) {
@@ -457,6 +464,7 @@ TEST(DisruptorTest, shouldMakeEntriesAvailableToFirstHandlersImmediately) {
 
   helper.tearDown(); // Java: @AfterEach tearDown()
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldAddEventProcessorsAfterPublishing) {
@@ -507,6 +515,7 @@ TEST(DisruptorTest, shouldAddEventProcessorsAfterPublishing) {
   EXPECT_EQ(5, b3->getSequence().get());
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldSetSequenceForHandlerIfAddedAfterPublish) {
@@ -536,6 +545,7 @@ TEST(DisruptorTest, shouldSetSequenceForHandlerIfAddedAfterPublish) {
   EXPECT_EQ(5, d.getSequenceValueFor(b3));
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldGetSequenceBarrierForHandler) {
@@ -563,6 +573,7 @@ TEST(DisruptorTest, shouldGetSequenceBarrierForHandler) {
   EXPECT_EQ(5, barrier->getCursor());
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldGetSequenceBarrierForHandlerIfAddedAfterPublish) {
@@ -590,6 +601,7 @@ TEST(DisruptorTest, shouldGetSequenceBarrierForHandlerIfAddedAfterPublish) {
   EXPECT_EQ(5, barrier->getCursor());
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldCreateEventProcessorGroupForFirstEventProcessors) {
@@ -609,6 +621,7 @@ TEST(DisruptorTest, shouldCreateEventProcessorGroupForFirstEventProcessors) {
   EXPECT_NE(nullptr, &eventHandlerGroup);
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(
@@ -635,6 +648,7 @@ TEST(
 
   helper.tearDown();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldSupportAddingCustomEventProcessorWithFactory) {
@@ -689,6 +703,7 @@ TEST(DisruptorTest, shouldSupportAddingCustomEventProcessorWithFactory) {
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldAllowSpecifyingSpecificEventProcessorsToWaitFor) {
@@ -719,6 +734,7 @@ TEST(DisruptorTest, shouldAllowSpecifyingSpecificEventProcessorsToWaitFor) {
 
   helper.tearDown();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldWaitOnAllProducersJoinedByAnd) {
@@ -751,6 +767,7 @@ TEST(DisruptorTest, shouldWaitOnAllProducersJoinedByAnd) {
 
   helper.tearDown();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldThrowExceptionIfHandlerIsNotAlreadyConsuming) {
@@ -769,6 +786,7 @@ TEST(DisruptorTest, shouldThrowExceptionIfHandlerIsNotAlreadyConsuming) {
                std::invalid_argument);
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldTrackEventHandlersByIdentityNotEquality) {
@@ -790,6 +808,7 @@ TEST(DisruptorTest, shouldTrackEventHandlersByIdentityNotEquality) {
   EXPECT_THROW(d.after(handlers2, 1), std::invalid_argument);
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest,
@@ -818,6 +837,7 @@ TEST(DisruptorTest,
   EXPECT_NE(nullptr, actualException);
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(
@@ -849,6 +869,7 @@ TEST(
   EXPECT_NE(nullptr, actualException);
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest,
@@ -877,6 +898,7 @@ TEST(DisruptorTest,
   EXPECT_NE(nullptr, actualException);
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest,
@@ -905,6 +927,7 @@ TEST(DisruptorTest,
   EXPECT_NE(nullptr, actualException);
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldBlockProducerUntilAllEventProcessorsHaveAdvanced) {
@@ -947,7 +970,8 @@ TEST(DisruptorTest, shouldBlockProducerUntilAllEventProcessorsHaveAdvanced) {
   stubPublisher.halt();
   publisherThread.join();
   helper.tearDown();
-  d.halt(); // Ensure Disruptor threads are joined before destruction
+  d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed // Ensure Disruptor threads are joined before destruction
 }
 
 TEST(DisruptorTest,
@@ -977,6 +1001,7 @@ TEST(DisruptorTest,
   EXPECT_NE(nullptr, actualException);
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(
@@ -997,6 +1022,7 @@ TEST(
   EXPECT_THROW(d.handleEventsWith(handler2), std::runtime_error);
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldThrowExceptionIfStartIsCalledTwice) {
@@ -1014,6 +1040,7 @@ TEST(DisruptorTest, shouldThrowExceptionIfStartIsCalledTwice) {
   EXPECT_THROW(d.start(), std::runtime_error);
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldSupportCustomProcessorsAsDependencies) {
@@ -1048,6 +1075,7 @@ TEST(DisruptorTest, shouldSupportCustomProcessorsAsDependencies) {
 
   helper.tearDown();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldSupportHandlersAsDependenciesToCustomProcessors) {
@@ -1084,6 +1112,7 @@ TEST(DisruptorTest, shouldSupportHandlersAsDependenciesToCustomProcessors) {
 
   helper.tearDown();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldSupportCustomProcessorsAndHandlersAsDependencies) {
@@ -1125,6 +1154,7 @@ TEST(DisruptorTest, shouldSupportCustomProcessorsAndHandlersAsDependencies) {
 
   helper.tearDown();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest,
@@ -1150,6 +1180,7 @@ TEST(DisruptorTest,
 
   helper.tearDown();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldTrackRemainingCapacity) {
@@ -1194,6 +1225,7 @@ TEST(DisruptorTest, shouldTrackRemainingCapacity) {
   EXPECT_EQ(1024, d.getRingBuffer().remainingCapacity());
 
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldAllowEventHandlerWithSuperType) {
@@ -1230,6 +1262,7 @@ TEST(DisruptorTest, shouldAllowEventHandlerWithSuperType) {
 
   latch.await();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
 TEST(DisruptorTest, shouldAllowChainingEventHandlersWithSuperType) {
@@ -1265,4 +1298,5 @@ TEST(DisruptorTest, shouldAllowChainingEventHandlersWithSuperType) {
 
   helper.tearDown();
   d.halt();
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
