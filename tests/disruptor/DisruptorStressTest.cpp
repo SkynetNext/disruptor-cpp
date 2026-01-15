@@ -99,6 +99,12 @@ TEST(DisruptorStressTest, shouldHandleLotsOfThreads_smoke) {
 
   done.await();
   d.shutdown(2000);
+  // ⚠️ CRITICAL: Must join consumer threads BEFORE handlers go out of scope!
+  // shutdown() only calls halt(), it does NOT wait for threads to finish.
+  // The Disruptor destructor will join, but that's too late - handlers would
+  // already be destroyed by then.
+  d.join();  // Wait for all consumer threads to finish
+  
   for (auto& t : pubThreads) t.join();
 
   for (auto& p : pubs) {
