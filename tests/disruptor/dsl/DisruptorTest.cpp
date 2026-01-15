@@ -220,59 +220,61 @@ TEST(DisruptorTest, shouldProcessMessagesPublishedBeforeStartIsCalled) {
 TEST(DisruptorTest, shouldSupportMultipleCustomProcessorsAsDependencies) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
+  using DisruptorT = disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS>;
   auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   
-  // ⚠️ CRITICAL: All handlers must be declared BEFORE Disruptor
-  // to ensure they outlive the Disruptor and all threads that reference them.
+  // All handlers must be declared before anything that references them
   disruptor::test_support::CountDownLatch countDownLatch(2);
   disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(countDownLatch);
   disruptor::dsl::stubs::DelayedEventHandler delayedEventHandler1;
   disruptor::dsl::stubs::DelayedEventHandler delayedEventHandler2;
   
-  // Use inner scope to ensure Disruptor is destroyed before handlers
-  {
-    disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-        disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+  // Use unique_ptr to explicitly control destruction order
+  auto d = std::make_unique<DisruptorT>(
+      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
-    auto &ringBuffer = d.getRingBuffer();
+  auto &ringBuffer = d->getRingBuffer();
 
-    disruptor::BatchEventProcessorBuilder builder1;
-    auto barrier1 = ringBuffer.newBarrier();
-    auto processor1 = builder1.build(ringBuffer, *barrier1, delayedEventHandler1);
+  disruptor::BatchEventProcessorBuilder builder1;
+  auto barrier1 = ringBuffer.newBarrier();
+  auto processor1 = builder1.build(ringBuffer, *barrier1, delayedEventHandler1);
 
-    disruptor::BatchEventProcessorBuilder builder2;
-    auto barrier2 = ringBuffer.newBarrier();
-    auto processor2 = builder2.build(ringBuffer, *barrier2, delayedEventHandler2);
+  disruptor::BatchEventProcessorBuilder builder2;
+  auto barrier2 = ringBuffer.newBarrier();
+  auto processor2 = builder2.build(ringBuffer, *barrier2, delayedEventHandler2);
 
-    // Keep processors alive for the lifetime of the scope
-    std::vector<std::shared_ptr<disruptor::EventProcessor>> keptProcessors = {
-        processor1, processor2};
-    disruptor::EventProcessor *processors[] = {processor1.get(),
-                                               processor2.get()};
-    d.handleEventsWith(processors, 2);
-    d.after(processors, 2).handleEventsWith(handlerWithBarrier);
+  // Keep processors alive for the lifetime of the test
+  std::vector<std::shared_ptr<disruptor::EventProcessor>> keptProcessors = {
+      processor1, processor2};
+  disruptor::EventProcessor *processors[] = {processor1.get(),
+                                             processor2.get()};
+  d->handleEventsWith(processors, 2);
+  d->after(processors, 2).handleEventsWith(handlerWithBarrier);
 
-    d.start();
-    delayedEventHandler1.awaitStart();
-    delayedEventHandler2.awaitStart();
+  d->start();
+  delayedEventHandler1.awaitStart();
+  delayedEventHandler2.awaitStart();
 
-    NoOpTranslator translator;
-    d.publishEvent(translator);
-    d.publishEvent(translator);
+  NoOpTranslator translator;
+  d->publishEvent(translator);
+  d->publishEvent(translator);
 
-    // Process events through dependencies first
-    delayedEventHandler1.processEvent();
-    delayedEventHandler1.processEvent();
-    delayedEventHandler2.processEvent();
-    delayedEventHandler2.processEvent();
+  // Process events through dependencies first
+  delayedEventHandler1.processEvent();
+  delayedEventHandler1.processEvent();
+  delayedEventHandler2.processEvent();
+  delayedEventHandler2.processEvent();
 
-    countDownLatch.await();
-    delayedEventHandler1.stopWaiting();
-    delayedEventHandler2.stopWaiting();
-    d.halt();
-    d.join();  // Wait for consumer threads to finish
-  }  // Disruptor destroyed here, before handlers
+  countDownLatch.await();
+  delayedEventHandler1.stopWaiting();
+  delayedEventHandler2.stopWaiting();
+  d->halt();
+  d->join();
+  
+  // ⚠️ CRITICAL: Destroy Disruptor BEFORE processors/barriers go out of scope
+  // Disruptor's ConsumerRepository holds raw pointers to processors
+  d.reset();
 }
 
 TEST(DisruptorTest,
