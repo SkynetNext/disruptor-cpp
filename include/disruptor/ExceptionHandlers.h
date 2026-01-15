@@ -16,9 +16,11 @@ public:
   // Java: public static ExceptionHandler<Object> defaultHandler()
   template <typename T>
   static std::shared_ptr<ExceptionHandler<T>> defaultHandler() {
-    // Java holder idiom -> function-local static.
-    static std::shared_ptr<ExceptionHandler<T>> handler = std::make_shared<FatalExceptionHandler<T>>();
-    return handler;
+    // Use a "leaked" pointer pattern to avoid static destruction order issues.
+    // The handler is intentionally never deleted to ensure it outlives all threads.
+    static std::shared_ptr<ExceptionHandler<T>>* handler = 
+        new std::shared_ptr<ExceptionHandler<T>>(std::make_shared<FatalExceptionHandler<T>>());
+    return *handler;
   }
 };
 
