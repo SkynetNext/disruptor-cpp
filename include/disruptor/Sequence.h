@@ -2,63 +2,29 @@
 // 1:1 port skeleton of com.lmax.disruptor.Sequence
 
 #include <atomic>
-#include <cstddef>
 #include <cstdint>
 
 namespace disruptor {
 
-// Java reference (for padding intent):
-//   reference/disruptor/src/main/java/com/lmax/disruptor/Sequence.java
-// Java uses padding superclasses to reduce false sharing around the hot `value` field.
-// We mirror the structure in C++.
+// Java reference: reference/disruptor/src/main/java/com/lmax/disruptor/Sequence.java
 //
-// Java 64-bit JVM layout (compressed oops enabled):
-//   Object Header: 12 bytes
-//   LhsPadding:    56 bytes (7 rows × 8 bytes)
-//   value:          8 bytes
-//   RhsPadding:    56 bytes (7 rows × 8 bytes)
-//   Alignment:      4 bytes
-//   Total:        136 bytes
+// Java has no alignas, so it uses manual padding via inheritance hierarchy
+// (LhsPadding -> Value -> RhsPadding) to prevent false sharing.
 //
-// C++ has no Object Header, so we use:
-//   LhsPadding: 64 bytes (1 cache line, covers Java's header + most of padding)
-//   RhsPadding: 60 bytes (Java RhsPadding 56 + Alignment 4)
-//   Total: 64 + 8 + 60 = 132 bytes (> 128 bytes for L2 Spatial Prefetcher)
+// C++ can use alignas(128) directly:
+//   - Aligns object start to 128-byte boundary
+//   - Pads sizeof to 128 bytes (compiler inserts trailing padding)
+//   - Ensures value_ doesn't share 128-byte prefetch block with adjacent objects
 //
-// This ensures value doesn't share cache lines with adjacent objects,
-// accounting for L2 Spatial Prefetcher's 128-byte prefetch granularity.
-namespace detail {
+// This satisfies Intel's Rule 18: separate synchronization variables by 128 bytes.
+// See docs/CACHE_LINE_PADDING.md for details.
 
-// Java: Sequence.INITIAL_VALUE = -1L
-inline constexpr int64_t kInitialValue = -1;
-
-// 64 bytes left padding (1 cache line)
-struct LhsPadding {
-  std::byte p1[8]{};
-};
-
-struct Value : LhsPadding {
-  std::atomic<int64_t> value_;
-  Value() noexcept : value_(kInitialValue) {}
-  explicit Value(int64_t initial) noexcept : value_(initial) {}
-};
-
-// 60 bytes right padding (Java RhsPadding 56 + Alignment 4)
-// Total: 64 + 8 + 60 = 132 bytes (> 128 bytes, satisfies L2 prefetch requirement)
-struct RhsPadding : Value {
-  std::byte p2[8]{};
-  RhsPadding() noexcept : Value() {}
-  explicit RhsPadding(int64_t initial) noexcept : Value(initial) {}
-};
-
-} // namespace detail
-
-class alignas(128) Sequence : public detail::RhsPadding {
+class alignas(128) Sequence {
 public:
   static constexpr int64_t INITIAL_VALUE = -1;
 
-  Sequence() noexcept : detail::RhsPadding(INITIAL_VALUE) {}
-  explicit Sequence(int64_t initial) noexcept : detail::RhsPadding(initial) {}
+  Sequence() noexcept : value_(INITIAL_VALUE) {}
+  explicit Sequence(int64_t initial) noexcept : value_(initial) {}
   virtual ~Sequence() = default;
 
   // Java: long value = this.value; VarHandle.acquireFence(); return value;
@@ -70,6 +36,7 @@ public:
     std::atomic_thread_fence(std::memory_order_acquire);
     return value;
   }
+
   // Java: VarHandle.releaseFence(); this.value = value;
   // Java executes release fence first, then writes to plain field (not
   // volatile). C++: Match Java semantics - release fence + relaxed store.
@@ -105,6 +72,9 @@ public:
   virtual int64_t getAndAdd(int64_t increment) {
     return value_.fetch_add(increment, std::memory_order_acq_rel);
   }
+
+private:
+  std::atomic<int64_t> value_;
 };
 
 } // namespace disruptor
