@@ -6,10 +6,16 @@
 
 // Reference: https://github.com/google/sanitizers/wiki/ThreadSanitizerCppManual
 
-#if defined(__SANITIZE_THREAD__) ||                                            \
-    defined(__has_feature) && __has_feature(thread_sanitizer)
+// GCC uses __SANITIZE_THREAD__, Clang uses __has_feature(thread_sanitizer)
+#if defined(__SANITIZE_THREAD__)
 #define DISRUPTOR_TSAN_ENABLED 1
-#else
+#elif defined(__has_feature)
+#if __has_feature(thread_sanitizer)
+#define DISRUPTOR_TSAN_ENABLED 1
+#endif
+#endif
+
+#ifndef DISRUPTOR_TSAN_ENABLED
 #define DISRUPTOR_TSAN_ENABLED 0
 #endif
 
