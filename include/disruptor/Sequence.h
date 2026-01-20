@@ -9,16 +9,32 @@ namespace disruptor {
 
 // Java reference (for padding intent):
 //   reference/disruptor/src/main/java/com/lmax/disruptor/Sequence.java
-// Java uses padding superclasses to reduce false sharing around the hot `value`
-// field. We mirror the structure in C++.
+// Java uses padding superclasses to reduce false sharing around the hot `value` field.
+// We mirror the structure in C++.
+//
+// Java 64-bit JVM layout (compressed oops enabled):
+//   Object Header: 12 bytes
+//   LhsPadding:    56 bytes (7 rows × 8 bytes)
+//   value:          8 bytes
+//   RhsPadding:    56 bytes (7 rows × 8 bytes)
+//   Alignment:      4 bytes
+//   Total:        136 bytes
+//
+// C++ has no Object Header, so we use:
+//   LhsPadding: 64 bytes (1 cache line, covers Java's header + most of padding)
+//   RhsPadding: 60 bytes (Java RhsPadding 56 + Alignment 4)
+//   Total: 64 + 8 + 60 = 132 bytes (> 128 bytes for L2 Spatial Prefetcher)
+//
+// This ensures value doesn't share cache lines with adjacent objects,
+// accounting for L2 Spatial Prefetcher's 128-byte prefetch granularity.
 namespace detail {
 
 // Java: Sequence.INITIAL_VALUE = -1L
 inline constexpr int64_t kInitialValue = -1;
 
-// 7 * 16 bytes = 112 bytes, matching the Java source layout intent (p10..p77).
+// 64 bytes left padding (1 cache line)
 struct LhsPadding {
-  std::byte p1[112]{};
+  std::byte p1[64]{};
 };
 
 struct Value : LhsPadding {
@@ -27,9 +43,10 @@ struct Value : LhsPadding {
   explicit Value(int64_t initial) noexcept : value_(initial) {}
 };
 
-// Another 112 bytes on the RHS (p90..p157 in Java).
+// 60 bytes right padding (Java RhsPadding 56 + Alignment 4)
+// Total: 64 + 8 + 60 = 132 bytes (> 128 bytes, satisfies L2 prefetch requirement)
 struct RhsPadding : Value {
-  std::byte p2[112]{};
+  std::byte p2[60]{};
   RhsPadding() noexcept : Value() {}
   explicit RhsPadding(int64_t initial) noexcept : Value(initial) {}
 };
