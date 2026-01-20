@@ -34,7 +34,7 @@ inline constexpr int64_t kInitialValue = -1;
 
 // 64 bytes left padding (1 cache line)
 struct LhsPadding {
-  std::byte p1[64]{};
+  std::byte p1[8]{};
 };
 
 struct Value : LhsPadding {
@@ -46,14 +46,14 @@ struct Value : LhsPadding {
 // 60 bytes right padding (Java RhsPadding 56 + Alignment 4)
 // Total: 64 + 8 + 60 = 132 bytes (> 128 bytes, satisfies L2 prefetch requirement)
 struct RhsPadding : Value {
-  std::byte p2[60]{};
+  std::byte p2[8]{};
   RhsPadding() noexcept : Value() {}
   explicit RhsPadding(int64_t initial) noexcept : Value(initial) {}
 };
 
 } // namespace detail
 
-class Sequence : public detail::RhsPadding {
+class alignas(128) Sequence : public detail::RhsPadding {
 public:
   static constexpr int64_t INITIAL_VALUE = -1;
 
