@@ -53,7 +53,7 @@ struct RhsPadding : Value {
 
 } // namespace detail
 
-class alignas(256) Sequence : public detail::RhsPadding {
+class Sequence : public detail::RhsPadding {
 public:
   static constexpr int64_t INITIAL_VALUE = -1;
 
