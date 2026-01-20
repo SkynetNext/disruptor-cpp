@@ -1,26 +1,16 @@
 CompileFlags:
+  CompilationDatabase: build
   Add:
-    - -std=c++20
-    - -I./include
-    - -I./third_party/googletest/googletest/include
-    - -I./third_party/benchmark/include
-    - -Wall
-    - -Wextra
-    - -D_WIN32
-    - -D_DLL
-    - -D_MT
-  Remove:
-    - -march=native
-    - -mtune=native
+    - -std=c++26
+    - -ferror-limit=0
+  Remove: [-W*]
 
 Diagnostics:
-  UnusedIncludes: Strict
+  UnusedIncludes: None
+  MissingIncludes: None
 
 Index:
   Background: Build
 
 InlayHints:
-  Enabled: No
-  ParameterNames: No
-  DeducedTypes: No
-  Designators: No
+  Enabled: false
