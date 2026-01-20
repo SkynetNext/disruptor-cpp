@@ -53,9 +53,26 @@ From *Intel® 64 and IA-32 Architectures Optimization Reference Manual* §11.4.6
 > - Global data variables and static data variables that are placed in the same cache line and are written by different threads.
 > - Objects allocated dynamically by different threads may share cache lines. Make sure that the variables used locally by one thread are allocated in a manner to prevent sharing the cache line with other threads.
 >
-> Another technique to enforce alignment of synchronization variables and to avoid a cacheline being shared is to use compiler directives when declaring data structures.
+> Another technique to enforce alignment of synchronization variables and to avoid a cacheline being shared is to use compiler directives when declaring data structures. See Example 11-7.
 >
-> *— Document #: 248966-050US, Page 11-16*
+> **Example 11-7. Declaring Synchronization Variables without Sharing a Cache Line**
+> ```c
+> __declspec(align(64)) unsigned __int64 sum;
+> struct sync_struct {...};
+> __declspec(align(64)) struct sync_struct sync_var;
+> ```
+>
+> Other techniques that prevent false-sharing include:
+> - Organize variables of different types in data structures (because the layout compilers give to data variables might be different than their placement in the source code).
+> - When each thread needs to use its own copy of a set of variables, declare the variables with:
+>   - Directive `threadprivate`, when using OpenMP.
+>   - Modifier `__declspec(thread)`, when using Microsoft compiler.
+> - In managed environments that provide automatic object allocation, the object allocators and garbage collectors are responsible for layout of the objects in memory so that false sharing through two objects does not happen.
+> - Provide classes so only one thread writes to each object field and close object fields, to avoid false sharing.
+>
+> One should not equate the recommendations discussed in this section as favoring a sparsely populated data layout. The data-layout recommendations should be adopted when necessary and avoid unnecessary bloat in the size of the work set.
+>
+> *— Document #: 248966-050US, Page 11-16 ~ 11-17*
 
 ## Sequence Padding Design
 
@@ -81,39 +98,33 @@ public class Sequence extends RhsPadding { }
 
 ```cpp
 // include/disruptor/Sequence.h
-struct LhsPadding {
-  std::byte p1[64];                    // 64 bytes (1 cache line)
+// Java has no alignas, so it uses manual padding.
+// C++ uses alignas(128) directly - compiler handles alignment and padding.
+class alignas(128) Sequence {
+  std::atomic<int64_t> value_;         // 8 bytes + padding to 128
 };
-struct Value : LhsPadding {
-  std::atomic<int64_t> value_;         // 8 bytes
-};
-struct RhsPadding : Value {
-  std::byte p2[60];                    // 60 bytes
-};
-class Sequence : public RhsPadding { }
 ```
 
-**C++ object size**: 64 + 8 + 60 = **132 bytes**
+**C++ object size**: `sizeof(Sequence)` = **128 bytes** (compiler adds trailing padding)
 
 ### Memory Layout
 
 ```
 Offset    Content              Purpose
 ──────────────────────────────────────────────────────
-0x00      ┌─────────────────┐
-          │  LhsPadding     │  Isolate from preceding objects
-          │  (64 bytes)     │  in same 128-byte prefetch block
-0x40      ├─────────────────┤
+0x00      ┌─────────────────┐  ← 128-byte aligned boundary
+          │  vtable ptr     │  8 bytes (if virtual methods)
+0x08      ├─────────────────┤
           │  value_         │  ← Hot field (atomic<int64_t>)
           │  (8 bytes)      │
-0x48      ├─────────────────┤
-          │  RhsPadding     │  Isolate from following objects
-          │  (60 bytes)     │  in same 128-byte prefetch block
-0x84      └─────────────────┘
-          Total: 132 bytes (> 128 bytes)
+0x10      ├─────────────────┤
+          │  padding        │  Compiler-inserted (112 bytes)
+          │                 │
+0x80      └─────────────────┘
+          Total: 128 bytes (alignas(128))
 ```
 
-**Why > 128 bytes?**  
+**Why ≥128 bytes?**  
 Ensures `value_` cannot share a 128-byte prefetch block with any adjacent `Sequence` or other object.
 
 ## Practical Impact
