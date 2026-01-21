@@ -58,6 +58,7 @@ public:
     std::vector<disruptor::Sequence*> sequences;
     sequences.reserve(static_cast<size_t>(count));
     for (int i = 0; i < count; ++i) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       auto* p = processors[i];
       sequences.push_back(p ? &p->getSequence() : nullptr);
     }

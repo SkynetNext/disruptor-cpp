@@ -18,6 +18,7 @@ public:
   FixedSequenceGroup(Sequence* const* sequences, int count) {
     sequences_.reserve(static_cast<size_t>(count));
     for (int i = 0; i < count; ++i) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       sequences_.push_back(sequences[i]);
     }
   }

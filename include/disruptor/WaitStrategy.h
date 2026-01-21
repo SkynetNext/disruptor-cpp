@@ -13,8 +13,6 @@
 //   void WS::signalAllWhenBlocking();
 //   static constexpr bool WS::kIsBlockingStrategy;
 
-#include <cstdint>
-
 namespace disruptor {
 
 class Sequence;

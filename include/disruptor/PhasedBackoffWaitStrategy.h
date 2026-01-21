@@ -11,7 +11,6 @@
 
 #include <chrono>
 #include <cstdint>
-#include <memory>
 #include <thread>
 
 namespace disruptor {
@@ -70,7 +69,8 @@ public:
     int counter = SPIN_TRIES;
 
     while (true) {
-      if ((availableSequence = dependentSequence.get()) >= sequence) {
+      availableSequence = dependentSequence.get();
+      if (availableSequence >= sequence) {
         return availableSequence;
       }
 

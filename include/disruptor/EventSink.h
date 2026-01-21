@@ -2,7 +2,6 @@
 // 1:1 port of com.lmax.disruptor.EventSink
 // Source: reference/disruptor/src/main/java/com/lmax/disruptor/EventSink.java
 
-#include <cstdint>
 #include <vector>
 
 namespace disruptor {

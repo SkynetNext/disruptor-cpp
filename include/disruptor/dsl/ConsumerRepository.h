@@ -25,13 +25,16 @@ public:
   void
   add(EventProcessor& eventprocessor, EventHandlerIdentity& handlerIdentity, BarrierPtrT barrier) {
     auto consumerInfo = std::make_shared<EventProcessorInfo<BarrierPtrT>>(eventprocessor, barrier);
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     eventProcessorInfoByEventHandler_[&handlerIdentity] = consumerInfo;
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     eventProcessorInfoBySequence_[&eventprocessor.getSequence()] = consumerInfo;
     consumerInfos_.push_back(std::move(consumerInfo));
   }
 
   void add(EventProcessor& processor) {
     auto consumerInfo = std::make_shared<EventProcessorInfo<BarrierPtrT>>(processor, BarrierPtrT{});
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     eventProcessorInfoBySequence_[&processor.getSequence()] = consumerInfo;
     consumerInfos_.push_back(std::move(consumerInfo));
   }
@@ -64,6 +67,7 @@ public:
         Sequence* const* sequences = consumerInfo->getSequences();
         const int count = consumerInfo->getSequenceCount();
         for (int i = 0; i < count; ++i) {
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           if (cursor > sequences[i]->get()) {
             return true;
           }
@@ -87,6 +91,7 @@ public:
 
   void unMarkEventProcessorsAsEndOfChain(Sequence* const* barrierEventProcessors, int count) {
     for (int i = 0; i < count; ++i) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       auto* info = getEventProcessorInfo(*barrierEventProcessors[i]);
       if (info != nullptr) {
         info->markAsUsedInBarrier();

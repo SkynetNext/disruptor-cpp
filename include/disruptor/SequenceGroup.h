@@ -7,6 +7,7 @@
 #include "SequenceGroups.h"
 #include "util/Util.h"
 
+#include <array>
 #include <atomic>
 #include <cstdint>
 #include <limits>
@@ -44,9 +45,9 @@ public:
 
   void add(Sequence& sequence) {
     Sequence* ptr = &sequence;
-    Sequence* const arr[1] = {ptr};
+    std::array<Sequence* const, 1> arr = {ptr};
     // This mirrors Java CAS update of the array.
-    SequenceGroups::addSequences(*this, sequences_, *this, arr, 1);
+    SequenceGroups::addSequences(*this, sequences_, *this, arr.data(), 1);
   }
 
   bool remove(Sequence& sequence) {
@@ -60,8 +61,8 @@ public:
 
   void addWhileRunning(const Cursored& cursored, Sequence& sequence) {
     Sequence* ptr = &sequence;
-    Sequence* const arr[1] = {ptr};
-    SequenceGroups::addSequences(*this, sequences_, cursored, arr, 1);
+    std::array<Sequence* const, 1> arr = {ptr};
+    SequenceGroups::addSequences(*this, sequences_, cursored, arr.data(), 1);
   }
 
 private:

@@ -7,9 +7,7 @@
 #include "Sequence.h"
 
 #include <cstdint>
-#include <functional>
 #include <memory>
-#include <vector>
 
 namespace disruptor {
 
@@ -76,8 +74,10 @@ public:
                                                           std::move(sequence), cursorSequence);
     }
     if (gatingCount == 1) {
-      return std::make_shared<EventPoller<T, SequencerT>>(dataProvider, sequencer,
-                                                          std::move(sequence), *gatingSequences[0]);
+      return std::make_shared<EventPoller<T, SequencerT>>(
+        dataProvider, sequencer, std::move(sequence),
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        *gatingSequences[0]);
     }
     auto poller = std::make_shared<EventPoller<T, SequencerT>>(dataProvider, sequencer,
                                                                std::move(sequence), cursorSequence);

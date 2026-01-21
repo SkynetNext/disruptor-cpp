@@ -37,6 +37,7 @@ public:
 
       cursorSequence = cursor.getCursor();
       for (int i = 0; i < count; ++i) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         auto* seq = sequencesToAdd[i];
         if (seq) {
           seq->set(cursorSequence);
@@ -48,6 +49,7 @@ public:
 
     cursorSequence = cursor.getCursor();
     for (int i = 0; i < count; ++i) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       auto* seq = sequencesToAdd[i];
       if (seq) {
         seq->set(cursorSequence);

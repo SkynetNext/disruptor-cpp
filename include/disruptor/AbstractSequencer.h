@@ -8,7 +8,6 @@
 #include "Sequencer.h"
 #include "WaitStrategy.h"
 
-#include "EventPoller.h"
 #include "SequenceGroups.h"
 #include "util/Util.h"
 

@@ -6,15 +6,11 @@
 // Note: Java method name `and` is a keyword alternative token in C++ (`and` ==
 // `&&`), so we expose it as `and_` while keeping behavior 1:1.
 
-#include "../EventHandler.h"
 #include "../EventProcessor.h"
-#include "../RewindableEventHandler.h"
 #include "../Sequence.h"
 #include "ConsumerRepository.h"
-#include "EventProcessorFactory.h"
 #include "ProducerType.h"
 
-#include <algorithm>
 #include <vector>
 
 namespace disruptor::dsl {
@@ -34,6 +30,7 @@ public:
                     int count)
     : disruptor_(&disruptor)
     , consumerRepository_(&consumerRepository)
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     , sequences_(sequences, sequences + count) {}
 
   EventHandlerGroup<T, Producer, WaitStrategyT>
@@ -51,7 +48,9 @@ public:
     std::vector<Sequence*> combined;
     combined.reserve(sequences_.size() + static_cast<size_t>(count));
     for (int i = 0; i < count; ++i) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       consumerRepository_->add(*processors[i]);
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       combined.push_back(&processors[i]->getSequence());
     }
     combined.insert(combined.end(), sequences_.begin(), sequences_.end());

@@ -110,6 +110,7 @@ public:
   EventHandlerGroup<T, Producer, WaitStrategyT> handleEventsWith(EventProcessor* const* processors,
                                                                  int count) {
     for (int i = 0; i < count; ++i) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       consumerRepository_.add(*processors[i]);
     }
     auto sequences = util::Util::getSequencesFor(processors, count);
@@ -150,6 +151,7 @@ public:
     std::vector<Sequence*> sequences;
     sequences.reserve(static_cast<size_t>(count));
     for (int i = 0; i < count; ++i) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       sequences.push_back(&consumerRepository_.getSequenceFor(*handlers[i]));
     }
     return EventHandlerGroup<T, Producer, WaitStrategyT>(
@@ -386,6 +388,7 @@ private:
     // ring buffer already gates on new sequences; remove old barrier gating
     // sequences.
     for (int i = 0; i < barrierCount; ++i) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       ringBuffer_->removeGatingSequence(*barrierSequences[i]);
     }
     (void)processorSequences;

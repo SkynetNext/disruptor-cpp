@@ -5,14 +5,11 @@
 #include "AlertException.h"
 #include "FixedSequenceGroup.h"
 #include "Sequence.h"
-#include "SequenceBarrier.h"
-#include "TimeoutException.h"
 #include "WaitStrategy.h"
 
 #include <atomic>
 #include <cstdint>
 #include <memory>
-#include <vector>
 
 namespace disruptor {
 

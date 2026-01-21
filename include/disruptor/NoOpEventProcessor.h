@@ -3,7 +3,6 @@
 // Source: reference/disruptor/src/main/java/com/lmax/disruptor/NoOpEventProcessor.java
 
 #include "EventProcessor.h"
-#include "RingBuffer.h"
 #include "Sequence.h"
 #include "Sequencer.h"
 

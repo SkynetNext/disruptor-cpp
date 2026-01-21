@@ -12,6 +12,5 @@
 // This file no longer defines a base class. It is kept as documentation and a
 // compatibility placeholder while the codebase is migrated.
 
-#include <cstdint>
 
 namespace disruptor {}  // namespace disruptor

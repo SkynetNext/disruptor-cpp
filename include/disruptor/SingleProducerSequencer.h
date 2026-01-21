@@ -11,6 +11,7 @@
 #include "util/ThreadHints.h"
 #include "util/Util.h"
 
+#include <array>
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -41,7 +42,7 @@ namespace detail {
 // 112 bytes of padding (same shape as Java p10..p77).
 template <typename WaitStrategyT>
 struct SpSequencerPad : public AbstractSequencer<WaitStrategyT> {
-  std::byte p1[112]{};
+  std::array<std::byte, 112> p1{};
 
   SpSequencerPad(int bufferSize, WaitStrategyT& waitStrategy)
     : AbstractSequencer<WaitStrategyT>(bufferSize, waitStrategy) {}
@@ -64,8 +65,7 @@ template <typename WaitStrategyT>
 class SingleProducerSequencer final : public detail::SpSequencerFields<WaitStrategyT> {
 public:
   SingleProducerSequencer(int bufferSize, WaitStrategyT& waitStrategy)
-    : detail::SpSequencerFields<WaitStrategyT>(bufferSize, waitStrategy)
-    , gatingSequencesCache_(nullptr) {}
+    : detail::SpSequencerFields<WaitStrategyT>(bufferSize, waitStrategy) {}
 
   bool hasAvailableCapacity(int requiredCapacity) {
     return hasAvailableCapacity(requiredCapacity, false);
@@ -186,10 +186,10 @@ private:
   // shared_ptr operations. This is safe because gatingSequences_ is only
   // updated during add/remove (not on hot path), and we refresh the cache when
   // it's null.
-  mutable const std::vector<Sequence*>* gatingSequencesCache_;
+  mutable const std::vector<Sequence*>* gatingSequencesCache_ = nullptr;
 
   // Trailing padding to mirror Java's extra padding in the concrete class.
-  std::byte p2_[112 - sizeof(const std::vector<Sequence*>*)]{};
+  std::array<std::byte, 112 - sizeof(const std::vector<Sequence*>*)> p2_{};
 
   bool hasAvailableCapacity(int requiredCapacity, bool doStore) {
     int64_t nextValue = this->nextValue_;

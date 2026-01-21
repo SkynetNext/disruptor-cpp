@@ -8,7 +8,6 @@
 #include "WaitStrategy.h"
 #include "util/Util.h"
 
-#include <chrono>
 #include <condition_variable>
 #include <cstdint>
 #include <mutex>

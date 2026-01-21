@@ -8,6 +8,7 @@
 #include "ConsumerInfo.h"
 #include "ThreadFactory.h"
 
+#include <array>
 #include <latch>
 #include <thread>
 
@@ -17,7 +18,7 @@ template <typename BarrierPtrT>
 class EventProcessorInfo final : public ConsumerInfo<BarrierPtrT> {
 public:
   EventProcessorInfo(EventProcessor& eventprocessor, BarrierPtrT barrier)
-    : eventprocessor_(&eventprocessor), barrier_(barrier), endOfChain_(true) {}
+    : eventprocessor_(&eventprocessor), barrier_(barrier) {}
 
   EventProcessor& getEventProcessor() {
     return *eventprocessor_;
@@ -27,9 +28,9 @@ public:
   // C++ version: use static thread_local array to align with Java's dynamic
   // array creation and avoid data races (each thread has its own array).
   Sequence* const* getSequences() override {
-    static thread_local Sequence* sequences[1];
+    static thread_local std::array<Sequence*, 1> sequences;
     sequences[0] = &eventprocessor_->getSequence();
-    return sequences;
+    return sequences.data();
   }
 
   int getSequenceCount() const override {
@@ -44,7 +45,7 @@ public:
     return endOfChain_;
   }
 
-  void start(ThreadFactory& threadFactory, std::latch* startupLatch = nullptr) override {
+  void start(ThreadFactory& threadFactory, std::latch* startupLatch) override {
     // Java: Thread thread = threadFactory.newThread(eventprocessor);
     // thread.start(); C++: std::thread starts immediately; we must keep it and
     // join on shutdown to avoid use-after-free.
@@ -90,8 +91,8 @@ public:
 private:
   EventProcessor* eventprocessor_;
   BarrierPtrT barrier_;
-  bool endOfChain_;
-  std::thread thread_{};
+  bool endOfChain_ {true};
+  std::thread thread_;
 };
 
 }  // namespace disruptor::dsl
