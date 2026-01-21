@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
   # Run on schedule (weekly) to catch regressions
   schedule:
-    - cron: '0 0 * * 0'  # Every Sunday at midnight UTC
+    - cron: "0 0 * * 0" # Every Sunday at midnight UTC
 
 jobs:
   # Sanitizers: ASan + UBSan + LSan (combined, most common)
@@ -42,7 +42,7 @@ jobs:
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.30'
+          cmake-version: "3.30"
 
       - name: Configure CMake (ASan+UBSan)
         shell: bash
@@ -111,7 +111,7 @@ jobs:
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.30'
+          cmake-version: "3.30"
 
       - name: Configure CMake (MSan+UBSan)
         shell: bash
@@ -140,7 +140,7 @@ jobs:
           # - print_stats=1: Print statistics
           # - halt_on_error=0: Don't halt on first error (allows tests to continue despite GoogleTest init false positives)
           # - exit_code=0: Exit with code 0 even if errors are detected (allows gtest_discover_tests to succeed)
-          # Note: GoogleTest initialization false positives occur because system libraries (libstdc++) 
+          # Note: GoogleTest initialization false positives occur because system libraries (libstdc++)
           # are not instrumented with MSan. This is a known limitation and not a real bug.
           MSAN_OPTIONS: "check_initialization_order=0:poison_in_dtor=0:print_stats=1:halt_on_error=0:exit_code=0"
         run: cmake --build build --config Debug --parallel 2
@@ -153,7 +153,7 @@ jobs:
           # - print_stats=1: Print statistics
           # - halt_on_error=0: Don't halt on first error (allows tests to continue despite GoogleTest init false positives)
           # - exit_code=0: Exit with code 0 even if errors are detected (allows tests to complete)
-          # Note: GoogleTest initialization false positives occur because system libraries (libstdc++) 
+          # Note: GoogleTest initialization false positives occur because system libraries (libstdc++)
           # are not instrumented with MSan. This is a known limitation and not a real bug.
           # The tests will still run and report actual failures, MSan just won't stop execution.
           MSAN_OPTIONS: "check_initialization_order=0:poison_in_dtor=0:print_stats=1:halt_on_error=0:exit_code=0"
@@ -195,7 +195,7 @@ jobs:
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.30'
+          cmake-version: "3.30"
 
       - name: Configure CMake (TSan)
         shell: bash
@@ -259,7 +259,7 @@ jobs:
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.30'
+          cmake-version: "3.30"
 
       - name: Configure CMake
         shell: bash
@@ -274,7 +274,7 @@ jobs:
             -DCMAKE_CXX_STANDARD_REQUIRED=ON
             -DCMAKE_CXX_EXTENSIONS=OFF
             -DBUILD_TESTING=ON
-            -DBUILD_BENCHMARKS=OFF
+            -DBUILD_BENCHMARKS=ON
             -DBUILD_EXAMPLES=ON
             -DCMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE=OFF
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
@@ -302,23 +302,23 @@ jobs:
             echo "::error::clang-tidy not found in PATH"
             exit 1
           fi
-          
+
           # Verify compile_commands.json exists
           if [ ! -f build/compile_commands.json ]; then
             echo "::error::compile_commands.json not found, cannot run clang-tidy"
             exit 1
           fi
-          
+
           # Find all .cpp files (exclude third_party and reference)
           FILES=$(find include tests examples benchmarks -name "*.cpp" | \
             grep -v third_party | \
             grep -v reference || true)
-          
+
           if [ -z "$FILES" ]; then
             echo "No .cpp files to check"
             exit 0
           fi
-          
+
           # Run clang-tidy on all files at once
           # --header-filter='' skips header file checks (headers are checked via .cpp files)
           clang-tidy $FILES \
@@ -360,7 +360,7 @@ jobs:
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.30'
+          cmake-version: "3.30"
 
       - name: Configure CMake (for compile_commands.json)
         shell: bash
@@ -428,7 +428,7 @@ jobs:
             -i build \
             -i .git \
             || true
-          
+
           # Also output to console for visibility (only errors and warnings, not info)
           # Note: errors are reported by default, --enable=warning enables warning checks
           # Removed --error-exitcode=1 to allow warnings without failing the build
@@ -499,12 +499,12 @@ jobs:
               grep -v third_party | \
               grep -v reference || true)
           fi
-          
+
           if [ -z "$FILES" ]; then
             echo "No C++ files to check"
             exit 0
           fi
-          
+
           # Check formatting
           MISFORMATTED=""
           COUNT=0
@@ -522,7 +522,7 @@ jobs:
               fi
             fi
           done
-          
+
           if [ -n "$MISFORMATTED" ]; then
             echo "::error::Found $COUNT file(s) with formatting issues"
             echo ""
@@ -533,7 +533,7 @@ jobs:
             echo "  clang-format-19 -i <file>"
             exit 1
           fi
-          
+
           echo "✓ All files are properly formatted"
 
   # Code Coverage: gcov/lcov
@@ -576,7 +576,7 @@ jobs:
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.30'
+          cmake-version: "3.30"
 
       - name: Configure CMake (with coverage)
         shell: bash
