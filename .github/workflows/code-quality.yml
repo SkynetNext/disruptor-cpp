@@ -270,6 +270,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Debug
             -DCMAKE_C_COMPILER=/usr/bin/clang-19
             -DCMAKE_CXX_COMPILER=/usr/bin/clang++-19
+            -DCMAKE_CXX_STANDARD=26
+            -DCMAKE_CXX_STANDARD_REQUIRED=ON
+            -DCMAKE_CXX_EXTENSIONS=OFF
             -DBUILD_TESTING=ON
             -DBUILD_BENCHMARKS=OFF
             -DBUILD_EXAMPLES=ON
@@ -326,11 +329,12 @@ jobs:
             echo "Checking $file ($TOTAL_FILES)..."
             
             # Run clang-tidy and capture output
-            # Explicitly specify C++26 standard (same as .clangd config)
+            # compile_commands.json should already have correct C++26 settings from CMake
+            # Only add -std=c++26 as fallback if compile_commands.json doesn't have it
             OUTPUT=$(clang-tidy "$file" \
               -p build \
               --config-file=.clang-tidy \
-              -- -std=c++26 2>&1 || true)
+              --extra-arg=-std=c++26 2>&1 || true)
             
             # Filter out file-not-found errors and other benign warnings
             FILTERED=$(echo "$OUTPUT" | grep -v "file not found" | \
@@ -368,6 +372,14 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Setup GCC
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-14 g++-14
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
+          g++ --version
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -391,6 +403,8 @@ jobs:
             -B build
             -G Ninja
             -DCMAKE_BUILD_TYPE=Debug
+            -DCMAKE_C_COMPILER=gcc
+            -DCMAKE_CXX_COMPILER=g++
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
             -DBUILD_TESTING=ON
             -DBUILD_BENCHMARKS=OFF
