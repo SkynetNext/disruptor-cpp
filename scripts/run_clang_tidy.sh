@@ -120,9 +120,21 @@ fi
 
 # Configure CMake
 echo -e "${GREEN}=== Configuring CMake ===${NC}"
-cmake -B "$BUILD_DIR" \
-  -DBUILD_BENCHMARKS=ON \
-  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON || {
+CMAKE_ARGS=(
+  -B "$BUILD_DIR"
+  -DBUILD_BENCHMARKS=ON
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+)
+
+# Use clang if available (CI sets up clang/clang++ via update-alternatives)
+if command -v clang++ &> /dev/null; then
+  CMAKE_ARGS+=(
+    -DCMAKE_C_COMPILER="$(which clang)"
+    -DCMAKE_CXX_COMPILER="$(which clang++)"
+  )
+fi
+
+cmake "${CMAKE_ARGS[@]}" || {
   echo -e "${RED}Error: CMake configuration failed${NC}"
   exit 1
 }
