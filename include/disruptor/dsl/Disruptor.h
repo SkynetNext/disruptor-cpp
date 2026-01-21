@@ -18,6 +18,7 @@
 #include "../Sequence.h"
 #include "../TimeoutException.h"
 #include "../WaitStrategy.h"
+#include "../util/ThreadHints.h"
 #include "../util/Util.h"
 
 #include "ConsumerRepository.h"
@@ -98,8 +99,7 @@ public:
   template <typename... Handlers>
   EventHandlerGroup<T, Producer, WaitStrategyT>
   handleEventsWith(Handlers &...handlers) {
-    Sequence *none[0]{};
-    return createEventProcessors(none, 0, handlers...);
+    return createEventProcessors(static_cast<Sequence *const *>(nullptr), 0, handlers...);
   }
 
   // Set up custom processors (start of chain)

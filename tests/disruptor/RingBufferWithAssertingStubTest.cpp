@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "disruptor/InsufficientCapacityException.h"
+#include "disruptor/Error.h"
 #include "disruptor/RingBuffer.h"
-#include "disruptor/Sequencer.h"
 #include "tests/disruptor/support/StubEvent.h"
 
+#include <expected>
 #include <random>
 
 namespace {
@@ -28,8 +28,12 @@ public:
     return lastValue_;
   }
 
-  int64_t tryNext() { return next(); }
-  int64_t tryNext(int n) { return next(n); }
+  std::expected<int64_t, disruptor::Error> tryNext() { 
+    return next(); 
+  }
+  std::expected<int64_t, disruptor::Error> tryNext(int n) { 
+    return next(n); 
+  }
 
   void publish(int64_t sequence) {
     EXPECT_EQ(sequence, lastValue_);
@@ -73,7 +77,9 @@ TEST(RingBufferWithAssertingStubTest, shouldDelegateTryNextAndPublish) {
   auto sequencer = std::make_unique<AssertingSequencer>(16);
   auto ringBuffer = std::make_shared<disruptor::RingBuffer<Event, AssertingSequencer>>(
       disruptor::support::StubEvent::EVENT_FACTORY, std::move(sequencer));
-  ringBuffer->publish(ringBuffer->tryNext());
+  auto result = ringBuffer->tryNext();
+  ASSERT_TRUE(result.has_value());
+  ringBuffer->publish(result.value());
 }
 
 TEST(RingBufferWithAssertingStubTest, shouldDelegateNextNAndPublish) {
@@ -90,6 +96,8 @@ TEST(RingBufferWithAssertingStubTest, shouldDelegateTryNextNAndPublish) {
   auto sequencer = std::make_unique<AssertingSequencer>(16);
   auto ringBuffer = std::make_shared<disruptor::RingBuffer<Event, AssertingSequencer>>(
       disruptor::support::StubEvent::EVENT_FACTORY, std::move(sequencer));
-  int64_t hi = ringBuffer->tryNext(10);
+  auto result = ringBuffer->tryNext(10);
+  ASSERT_TRUE(result.has_value());
+  int64_t hi = result.value();
   ringBuffer->publish(hi - 9, hi);
 }

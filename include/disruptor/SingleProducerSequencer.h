@@ -4,7 +4,7 @@
 // reference/disruptor/src/main/java/com/lmax/disruptor/SingleProducerSequencer.java
 
 #include "AbstractSequencer.h"
-#include "InsufficientCapacityException.h"
+#include "Error.h"
 #include "ProcessingSequenceBarrier.h"
 #include "Sequence.h"
 #include "WaitStrategy.h"
@@ -13,10 +13,9 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <mutex>
+#include <expected>
 #include <stdexcept>
 #include <thread>
-#include <unordered_map>
 
 namespace disruptor {
 
@@ -109,19 +108,21 @@ public:
     return nextSequence;
   }
 
-  int64_t tryNext() { return tryNext(1); }
+  std::expected<int64_t, Error> tryNext() { 
+    return tryNext(1); 
+  }
 
-  int64_t tryNext(int n) {
-    if (n < 1) {
-      throw std::invalid_argument("n must be > 0");
+  std::expected<int64_t, Error> tryNext(int n) {
+    if (n < 1) [[unlikely]] {
+      return std::unexpected(Error::invalid_argument("n must be > 0"));
     }
 
-    if (!hasAvailableCapacity(n, true)) {
-      throw InsufficientCapacityException::INSTANCE();
+    if (!hasAvailableCapacity(n, true)) [[unlikely]] {
+      return std::unexpected(Error::insufficient_capacity());
     }
 
     this->nextValue_ += n;
-    return this->nextValue_;
+    return this->nextValue_;  // [[likely]] path - compiler optimizes this
   }
 
   int64_t remainingCapacity() {

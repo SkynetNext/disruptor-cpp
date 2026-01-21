@@ -3,9 +3,9 @@
 // Source: reference/disruptor/src/main/java/com/lmax/disruptor/RingBuffer.java
 
 #include "AbstractSequencer.h"
-#include "BlockingWaitStrategy.h"
 #include "Cursored.h"
 #include "DataProvider.h"
+#include "Error.h"
 #include "EventFactory.h"
 #include "EventPoller.h"
 #include "EventTranslator.h"
@@ -15,13 +15,13 @@
 #include "EventTranslatorVararg.h"
 #include "MultiProducerSequencer.h"
 #include "Sequence.h"
-#include "Sequencer.h"
 #include "SingleProducerSequencer.h"
 #include "WaitStrategy.h"
 
-#include "dsl/ProducerType.h"
 
+#include <array>
 #include <cstdint>
+#include <expected>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -74,8 +74,8 @@ public:
   }
 
   void addGatingSequences(Sequence &gatingSequence) {
-    Sequence *arr[1] = {&gatingSequence};
-    addGatingSequences(arr, 1);
+    std::array<Sequence *, 1> arr = {&gatingSequence};
+    addGatingSequences(arr.data(), 1);
   }
 
   int64_t getMinimumGatingSequence() {
@@ -112,8 +112,13 @@ public:
   int64_t remainingCapacity() { return sequencer().remainingCapacity(); }
   int64_t next() { return sequencer().next(); }
   int64_t next(int n) { return sequencer().next(n); }
-  int64_t tryNext() { return sequencer().tryNext(); }
-  int64_t tryNext(int n) { return sequencer().tryNext(n); }
+  
+  std::expected<int64_t, Error> tryNext() { 
+    return sequencer().tryNext(); 
+  }
+  std::expected<int64_t, Error> tryNext(int n) { 
+    return sequencer().tryNext(n); 
+  }
   void publish(int64_t sequence) { sequencer().publish(sequence); }
   void publish(int64_t lo, int64_t hi) { sequencer().publish(lo, hi); }
 

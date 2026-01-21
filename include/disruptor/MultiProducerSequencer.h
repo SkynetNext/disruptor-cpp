@@ -4,7 +4,7 @@
 // reference/disruptor/src/main/java/com/lmax/disruptor/MultiProducerSequencer.java
 
 #include "AbstractSequencer.h"
-#include "InsufficientCapacityException.h"
+#include "Error.h"
 #include "ProcessingSequenceBarrier.h"
 #include "Sequence.h"
 #include "WaitStrategy.h"
@@ -12,6 +12,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <expected>
 #include <stdexcept>
 #include <thread>
 #include <vector>
@@ -65,11 +66,13 @@ public:
     return nextSequence;
   }
 
-  int64_t tryNext() { return tryNext(1); }
+  std::expected<int64_t, Error> tryNext() { 
+    return tryNext(1); 
+  }
 
-  int64_t tryNext(int n) {
-    if (n < 1) {
-      throw std::invalid_argument("n must be > 0");
+  std::expected<int64_t, Error> tryNext(int n) {
+    if (n < 1) [[unlikely]] {
+      return std::unexpected(Error::invalid_argument("n must be > 0"));
     }
 
     int64_t current;
@@ -79,12 +82,12 @@ public:
       next = current + n;
 
       auto snap = this->gatingSequences_.load(std::memory_order_acquire);
-      if (!hasAvailableCapacity(snap.get(), n, current)) {
-        throw InsufficientCapacityException::INSTANCE();
+      if (!hasAvailableCapacity(snap.get(), n, current)) [[unlikely]] {
+        return std::unexpected(Error::insufficient_capacity());
       }
     } while (!this->cursor_.compareAndSet(current, next));
 
-    return next;
+    return next;  // [[likely]] path - compiler optimizes this
   }
 
   int64_t remainingCapacity() {

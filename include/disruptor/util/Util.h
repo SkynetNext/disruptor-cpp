@@ -6,13 +6,13 @@
 #include "../Sequence.h"
 
 #include <algorithm>
+#include <bit>
 #include <chrono>
 #include <condition_variable>
 #include <cstdint>
 #include <limits>
 #include <mutex>
 #include <stdexcept>
-#include <thread>
 #include <vector>
 
 namespace disruptor::util {
@@ -29,17 +29,8 @@ public:
       throw std::invalid_argument("x must be a positive number");
     }
     uint32_t v = static_cast<uint32_t>(x - 1);
-    int leading = 0;
-#if defined(_MSC_VER)
-    unsigned long idx = 0;
-    if (_BitScanReverse(&idx, v) != 0) {
-      leading = 31 - static_cast<int>(idx);
-    } else {
-      leading = 32;
-    }
-#else
-    leading = __builtin_clz(v);
-#endif
+    // C++20: use std::countl_zero to count leading zeros
+    int leading = static_cast<int>(std::countl_zero(v));
     return 1 << (32 - leading);
   }
 
@@ -92,16 +83,9 @@ public:
       throw std::invalid_argument("value must be a positive number");
     }
     // Java: Integer.SIZE - Integer.numberOfLeadingZeros(value) - 1
+    // C++20: use std::bit_width to get the number of bits needed, then subtract 1
     uint32_t v = static_cast<uint32_t>(value);
-    int leading = 0;
-#if defined(_MSC_VER)
-    unsigned long idx = 0;
-    _BitScanReverse(&idx, v);
-    leading = 31 - static_cast<int>(idx);
-#else
-    leading = __builtin_clz(v);
-#endif
-    return 32 - leading - 1;
+    return static_cast<int>(std::bit_width(v)) - 1;
   }
 
   // Java:

@@ -1,6 +1,7 @@
 // 1:1 port of:
 // reference/disruptor/src/examples/java/com/lmax/disruptor/examples/Pipeliner.java
 
+#include "disruptor/BlockingWaitStrategy.h"
 #include "disruptor/EventFactory.h"
 #include "disruptor/RingBuffer.h"
 #include "disruptor/dsl/Disruptor.h"

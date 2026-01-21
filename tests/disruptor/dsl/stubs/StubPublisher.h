@@ -2,8 +2,8 @@
 // 1:1 port of com.lmax.disruptor.dsl.stubs.StubPublisher
 // Source: reference/disruptor/src/test/java/com/lmax/disruptor/dsl/stubs/StubPublisher.java
 
+#include "disruptor/Error.h"
 #include "disruptor/RingBuffer.h"
-#include "disruptor/InsufficientCapacityException.h"
 #include "tests/disruptor/support/TestEvent.h"
 
 #include <atomic>
@@ -20,15 +20,15 @@ public:
 
   void run() {
     while (running_.load()) {
-      try {
-        // Use tryNext() instead of next() to allow checking running_ flag
-        // when buffer is full. This matches Java's behavior where LockSupport.parkNanos(1L)
-        // in next() allows periodic wake-up, but on Windows std::this_thread::yield()
-        // may not wake up reliably.
-        int64_t sequence = ringBuffer_->tryNext();
-        ringBuffer_->publish(sequence);
+      // Use tryNext() instead of next() to allow checking running_ flag
+      // when buffer is full. This matches Java's behavior where LockSupport.parkNanos(1L)
+      // in next() allows periodic wake-up, but on Windows std::this_thread::yield()
+      // may not wake up reliably.
+      auto result = ringBuffer_->tryNext();
+      if (result.has_value()) {
+        ringBuffer_->publish(result.value());
         publicationCount_.fetch_add(1);
-      } catch (const disruptor::InsufficientCapacityException&) {
+      } else {
         // Buffer is full, wait a bit and check running_ flag
         // This allows halt() to interrupt the blocking wait
         if (!running_.load()) {

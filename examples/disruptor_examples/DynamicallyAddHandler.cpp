@@ -2,6 +2,7 @@
 // reference/disruptor/src/examples/java/com/lmax/disruptor/examples/DynamicallyAddHandler.java
 
 #include "disruptor/BatchEventProcessorBuilder.h"
+#include "disruptor/BlockingWaitStrategy.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 

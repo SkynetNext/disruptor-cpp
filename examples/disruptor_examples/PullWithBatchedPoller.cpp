@@ -1,6 +1,7 @@
 // 1:1 port of:
 // reference/disruptor/src/examples/java/com/lmax/disruptor/examples/PullWithBatchedPoller.java
 
+#include "disruptor/BlockingWaitStrategy.h"
 #include "disruptor/EventFactory.h"
 #include "disruptor/EventPoller.h"
 #include "disruptor/RingBuffer.h"

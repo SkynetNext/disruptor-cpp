@@ -56,7 +56,11 @@ TEST(RingBufferTest, shouldThrowExceptionIfBufferIsFull) {
   disruptor::Sequence gating(ringBuffer->getBufferSize());
   ringBuffer->addGatingSequences(gating);
   for (int i = 0; i < ringBuffer->getBufferSize(); ++i) {
-    ringBuffer->publish(ringBuffer->tryNext());
+    auto result = ringBuffer->tryNext();
+    ASSERT_TRUE(result.has_value());
+    ringBuffer->publish(result.value());
   }
-  EXPECT_THROW((void)ringBuffer->tryNext(), disruptor::InsufficientCapacityException);
+  auto result = ringBuffer->tryNext();
+  EXPECT_FALSE(result.has_value());
+  EXPECT_EQ(result.error().code, disruptor::ErrorCode::InsufficientCapacity);
 }

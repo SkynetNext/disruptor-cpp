@@ -6,7 +6,6 @@
 #include "util/Util.h"
 
 #include <cstdint>
-#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -17,7 +16,7 @@ class FixedSequenceGroup final : public Sequence {
 public:
   // Java copies the array; we store pointers and treat them as identity.
   FixedSequenceGroup(Sequence* const* sequences, int count)
-      : sequences_() {
+        {
     sequences_.reserve(static_cast<size_t>(count));
     for (int i = 0; i < count; ++i) {
       sequences_.push_back(sequences[i]);

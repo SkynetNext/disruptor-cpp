@@ -4,6 +4,7 @@
 // Java source defines only the handler type. This C++ port provides a small
 // runnable main() that exercises the handler.
 
+#include "disruptor/BlockingWaitStrategy.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 
