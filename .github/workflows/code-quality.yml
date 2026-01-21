@@ -451,12 +451,18 @@ jobs:
       - name: Setup GCC
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-14 g++-14 gcov-14
+          sudo apt-get install -y gcc-14 g++-14
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
-          sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-14 100
+          # gcov is included with gcc-14, find and set it up
+          # In Ubuntu, gcov may be at /usr/lib/gcc/x86_64-linux-gnu/14/gcov or /usr/bin/gcov
+          if [ -f /usr/lib/gcc/x86_64-linux-gnu/14/gcov ]; then
+            sudo update-alternatives --install /usr/bin/gcov gcov /usr/lib/gcc/x86_64-linux-gnu/14/gcov 100
+          elif [ -f /usr/bin/gcov-14 ]; then
+            sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-14 100
+          fi
           g++ --version
-          gcov --version
+          gcov --version || echo "Note: gcov version check skipped"
 
       - name: Install dependencies
         run: |
@@ -504,9 +510,18 @@ jobs:
         run: |
           cd build
           # Verify gcov version matches compiler
-          gcov --version
-          # Collect coverage data (use gcov-14 explicitly if needed)
-          lcov --capture --directory . --output-file coverage.info --gcov-tool gcov-14
+          gcov --version || echo "Using gcov from PATH"
+          # Find gcov tool for GCC 14
+          if [ -f /usr/lib/gcc/x86_64-linux-gnu/14/gcov ]; then
+            GCOV_TOOL="/usr/lib/gcc/x86_64-linux-gnu/14/gcov"
+          elif [ -f /usr/bin/gcov-14 ]; then
+            GCOV_TOOL="gcov-14"
+          else
+            GCOV_TOOL="gcov"
+          fi
+          echo "Using gcov tool: $GCOV_TOOL"
+          # Collect coverage data
+          lcov --capture --directory . --output-file coverage.info --gcov-tool "$GCOV_TOOL"
           # Remove coverage for third-party code, reference code, and test files
           lcov --remove coverage.info \
             '*/third_party/*' \
