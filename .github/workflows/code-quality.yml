@@ -261,71 +261,11 @@ jobs:
         with:
           cmake-version: "3.30"
 
-      - name: Configure CMake
+      - name: Run clang-tidy
         shell: bash
         run: |
-          CMAKE_ARGS=(
-            -B build
-            -G Ninja
-            -DCMAKE_BUILD_TYPE=Debug
-            -DCMAKE_C_COMPILER=/usr/bin/clang-19
-            -DCMAKE_CXX_COMPILER=/usr/bin/clang++-19
-            -DCMAKE_CXX_STANDARD=26
-            -DCMAKE_CXX_STANDARD_REQUIRED=ON
-            -DCMAKE_CXX_EXTENSIONS=OFF
-            -DBUILD_TESTING=ON
-            -DBUILD_BENCHMARKS=ON
-            -DBUILD_EXAMPLES=ON
-            -DCMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE=OFF
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-          )
-          cmake "${CMAKE_ARGS[@]}"
-
-      - name: Build (to generate complete compile_commands.json)
-        run: |
-          # Build at least some targets to ensure compile_commands.json is complete
-          cmake --build build --config Debug --parallel 2 --target disruptor_cpp_tests || true
-
-      - name: Verify compile_commands.json
-        run: |
-          if [ -f build/compile_commands.json ]; then
-            echo "✓ compile_commands.json found"
-            echo "Entries: $(jq length build/compile_commands.json 2>/dev/null || echo 'unknown')"
-          else
-            echo "::warning::compile_commands.json not found, clang-tidy may have issues"
-          fi
-
-      - name: Run clang-tidy
-        run: |
-          # Verify clang-tidy is available
-          if ! command -v clang-tidy &> /dev/null; then
-            echo "::error::clang-tidy not found in PATH"
-            exit 1
-          fi
-
-          # Verify compile_commands.json exists
-          if [ ! -f build/compile_commands.json ]; then
-            echo "::error::compile_commands.json not found, cannot run clang-tidy"
-            exit 1
-          fi
-
-          # Find all .cpp files (exclude third_party and reference)
-          FILES=$(find include tests examples benchmarks -name "*.cpp" | \
-            grep -v third_party | \
-            grep -v reference || true)
-
-          if [ -z "$FILES" ]; then
-            echo "No .cpp files to check"
-            exit 0
-          fi
-
-          # Run clang-tidy on all files at once
-          # --header-filter='' skips header file checks (headers are checked via .cpp files)
-          clang-tidy $FILES \
-            -p build \
-            --config-file=.clang-tidy \
-            --header-filter='' \
-            --quiet
+          chmod +x scripts/run_clang_tidy.sh
+          scripts/run_clang_tidy.sh --quiet
 
   # Static Analysis: cppcheck
   static-analysis-cppcheck:
