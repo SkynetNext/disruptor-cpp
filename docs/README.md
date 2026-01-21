@@ -11,7 +11,7 @@ High-performance, low-latency C++ communication library featuring a **1:1 C++ po
 ## Quick Links
 
 - [Project Status](../README.md) - Overview and features
-- [Source Code](../include/) - Header-only implementation
+- [Source Code](../include/) - implementation
 
 ## Design Philosophy
 

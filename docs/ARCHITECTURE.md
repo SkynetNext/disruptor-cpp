@@ -13,7 +13,7 @@ Disruptor-CPP is a **1:1 C++ port of LMAX Disruptor**, implementing the same loc
 - **Zero Allocation**: Pre-allocated buffers eliminate runtime memory allocation
 - **Cache-Line Optimized**: Proper memory alignment prevents false sharing
 - **Lock-Free Algorithms**: Atomic operations for maximum performance
-- **Low Latency**: Optimized for time-critical applications (~2.2ns SPSC micro-benchmark)
+- **Low Latency**: Optimized for time-critical applications (3.22ns SPSC micro-benchmark)
 
 ## System Architecture
 
@@ -55,31 +55,33 @@ class RingBuffer {
 
 ### Sequence
 
-Cache-line aligned atomic sequence number for progress tracking:
+128-byte aligned atomic sequence number for progress tracking:
 
 ```cpp
-class alignas(std::hardware_destructive_interference_size) Sequence {
+class alignas(128) Sequence {
     std::atomic<int64_t> value_;
-    // Padding to fill cache line
+    // Compiler inserts padding to 128 bytes
 };
 ```
 
 **Key Features:**
-- Cache-line alignment (64 bytes) prevents false sharing
-- Memory ordering optimizations (acquire/release semantics)
+- 128-byte alignment prevents false sharing (Intel L2 prefetcher operates on 128-byte blocks)
+- Memory ordering optimizations (relaxed + fence pattern matching Java VarHandle semantics)
 - Lock-free atomic operations
+
+See `docs/CACHE_LINE_PADDING.md` and `docs/SEQUENCE_DESIGN.md` for details.
 
 ### Producer Types
 
 #### Single Producer
 - Direct assignment (no atomic operations)
-- **End-to-end**: 127 Mops/sec (~7.9ns/op) - representative of real-world usage
-- **Micro-benchmark**: 462.7 Mops/sec (~2.2ns/op) - theoretical maximum
+- **End-to-end**: 260 Mops/sec - representative of real-world usage
+- **Micro-benchmark**: 310.6 Mops/sec (3.22 ns/op) - theoretical maximum
 
 #### Multi Producer
 - Atomic CAS operations
-- **MP1C (4 threads)**: 40.7 Mops/sec (C++), 36.2 Mops/sec (Java)
-- **MP1C Batch (4 threads)**: 208.9 Mops/sec (C++), 208.7 Mops/sec (Java)
+- **MPSC (Single Event, 4 threads)**: 51.4 Mops/sec (C++), 36.1 Mops/sec (Java)
+- **MPSC (Batch, 4 threads)**: 291.6 Mops/sec (C++), 208.1 Mops/sec (Java)
 - Thread-safe for concurrent producers
 
 ### Wait Strategies
@@ -114,23 +116,26 @@ if (ring_buffer.is_available(sequence)) {
 
 ```
 ┌─────────────────────────────────────────┐
-│  Cache Line 1 (64 bytes)                │
+│  Prefetch Block 1 (128 bytes)           │
 │  Sequence::value_ + padding             │
+│  (alignas(128) ensures isolation)       │
 ├─────────────────────────────────────────┤
-│  Cache Line 2 (64 bytes)                │
+│  Prefetch Block 2 (128 bytes)            │
 │  RingBuffer fields + padding            │
 ├─────────────────────────────────────────┤
-│  Cache Line 3+                          │
+│  Prefetch Block 3+                      │
 │  Pre-allocated Event Array              │
 └─────────────────────────────────────────┘
 ```
 
 ### False Sharing Prevention
 
-Each `Sequence` instance is aligned to cache-line boundaries:
-- Prevents false sharing between producer and consumers
+Each `Sequence` instance is aligned to 128-byte boundaries:
+- Prevents false sharing between producer and consumers (Intel L2 prefetcher operates on 128-byte blocks)
 - Reduces cache coherency traffic
-- Improves multi-core performance
+- Improves multi-core performance (~20% improvement in MPSC scenarios)
+
+See `docs/CACHE_LINE_PADDING.md` for Intel optimization guidelines.
 
 ## Hardware Latency Context
 
@@ -162,16 +167,17 @@ Understanding hardware latency helps explain why Disruptor's design choices matt
 ### End-to-End Performance (Production-like)
 
 - **SPSC End-to-End**: 
-  - C++: 127 Mops/sec (~7.9ns/op)
-  - Java: 111 Mops/sec (~9.0ns/op)
-  - **C++ is 1.14x faster** - minimal difference in practical scenarios
+  - C++: 260 Mops/sec
+  - Java: 155 Mops/sec
+  - **C++ is 1.68x faster**
 
 ### Micro-Benchmark Performance
 
-- **SPSC micro-benchmark**: 2.161 ns/op (C++), 7.674 ns/op (Java) → 462.7 Mops/sec (C++), 130.3 Mops/sec (Java)
-- **MP1C (4 threads)**: 40.7 Mops/sec (C++), 36.2 Mops/sec (Java)
-- **MP1C Batch (4 threads)**: 208.9 Mops/sec (C++), 208.7 Mops/sec (Java)
-- **BlockingQueue baseline**: 88.56 ns/op (C++), 105.88 ns/op (Java) → 11.3 Mops/sec (C++), 9.4 Mops/sec (Java)
+- **SPSC micro-benchmark**: 3.22 ns/op (C++), 7.197 ns/op (Java) → 310.6 Mops/sec (C++), 138.9 Mops/sec (Java)
+- **MPSC (Single Event, 4 threads)**: 51.4 Mops/sec (C++), 36.1 Mops/sec (Java)
+- **MPSC (Batch, 4 threads)**: 291.6 Mops/sec (C++), 208.1 Mops/sec (Java)
+
+*See `docs/BENCHMARK_RESULTS.md` for detailed benchmark data.*
 
 ### Scalability
 
@@ -200,7 +206,7 @@ Events are reused, only their content is updated. No copying during operation.
 ## Use Cases
 
 ### High-Frequency Trading
-- Low latency requirements (~7.9ns/op end-to-end, C++)
+- Low latency requirements (3.22ns/op micro-benchmark, 260 Mops/sec end-to-end, C++)
 - Predictable performance
 - Zero GC pauses
 
@@ -221,11 +227,11 @@ Events are reused, only their content is updated. No copying during operation.
 | Feature | Disruptor-CPP | std::queue + mutex | LMAX Disruptor |
 |---------|-------------|-------------------|----------------|
 | Language | C++ | C++ | Java |
-| Latency (SPSC End-to-End) | ~7.9ns | ~88ns | ~9.0ns |
-| Throughput (SPSC End-to-End) | 127 Mops/sec | 11.3 Mops/sec | 111 Mops/sec |
+| Latency (SPSC micro-benchmark) | 3.22 ns/op | ~88ns | 7.197 ns/op |
+| Throughput (SPSC End-to-End) | 260 Mops/sec | ~11 Mops/sec | 155 Mops/sec |
 | Allocation | Zero | Per-op | Zero |
 | Lock-free | ✅ | ❌ | ✅ |
-| Cache Optimized | ✅ | ❌ | ✅ |
+| Cache Optimized (128-byte) | ✅ | ❌ | ✅ |
 
 ## Future Enhancements
 
