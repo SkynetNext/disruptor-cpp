@@ -8,13 +8,13 @@
 #include "ProcessingSequenceBarrier.h"
 #include "Sequence.h"
 #include "WaitStrategy.h"
+#include "util/ThreadHints.h"
 #include "util/Util.h"
 
 #include <atomic>
 #include <cstdint>
 #include <expected>
 #include <stdexcept>
-#include <thread>
 #include <vector>
 
 namespace disruptor {
@@ -58,7 +58,10 @@ public:
     if (wrapPoint > cachedGatingSequence || cachedGatingSequence > current) {
       int64_t gatingSequence;
       while (wrapPoint > (gatingSequence = minimumSequence(current))) {
-        std::this_thread::yield();
+        // Java: LockSupport.parkNanos(1L)
+        // Use CPU pause hint instead of yield() to match Java's parkNanos(1L)
+        // which doesn't actually yield the CPU on most systems
+        disruptor::util::ThreadHints::onSpinWait();
       }
       gatingSequenceCache_.set(gatingSequence);
     }

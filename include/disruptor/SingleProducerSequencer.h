@@ -8,6 +8,7 @@
 #include "ProcessingSequenceBarrier.h"
 #include "Sequence.h"
 #include "WaitStrategy.h"
+#include "util/ThreadHints.h"
 #include "util/Util.h"
 
 #include <atomic>
@@ -15,7 +16,6 @@
 #include <cstdint>
 #include <expected>
 #include <stdexcept>
-#include <thread>
 
 namespace disruptor {
 
@@ -98,7 +98,9 @@ public:
       while (wrapPoint > (minSequence = minimumSequence(nextValue))) {
         sp_wrap_wait_loops().fetch_add(1, std::memory_order_relaxed);
         // Java: LockSupport.parkNanos(1L)
-        std::this_thread::yield();
+        // Use CPU pause hint instead of yield() to match Java's parkNanos(1L)
+        // which doesn't actually yield the CPU on most systems
+        disruptor::util::ThreadHints::onSpinWait();
       }
 
       this->cachedValue_ = minSequence;
