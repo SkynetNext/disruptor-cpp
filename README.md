@@ -16,30 +16,24 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ```
 
-## Benchmarking (aligned with CI)
+## Performance Results
 
-Run all C++ JMH-ported benchmarks and output JSON:
+### Throughput (C++ vs Java)
 
-```powershell
-cd F:\disruptor-cpp\build
-.\benchmarks\disruptor_cpp_benchmarks.exe --benchmark_filter='^JMH_' --benchmark_min_warmup_time=10 --benchmark_min_time=5s --benchmark_repetitions=3 --benchmark_report_aggregates_only=true --benchmark_out=..\benchmark_cpp.json --benchmark_out_format=json
-```
+| Test | C++ | Java | **C++/Java** |
+|------|-----|------|--------------|
+| **SPSC** | 310.6 Mops/sec | 138.9 Mops/sec | **2.24x** ⬆️ |
+| **MPSC (单事件)** | 51.4 Mops/sec | 36.1 Mops/sec | **1.42x** ⬆️ |
+| **MPSC (批量)** | 291.6 Mops/sec | 208.1 Mops/sec | **1.40x** ⬆️ |
+| **SPSC End-to-End** | 260 Mops/sec | 155 Mops/sec | **1.68x** ⬆️ |
 
-Run Java JMH (Git Bash, using the JMH jar) and output JSON:
+### Latency (SPSC)
 
-```bash
-cd /f/disruptor-cpp/reference/disruptor
-./gradlew jmhJar --no-daemon
-java -jar build/libs/*-jmh.jar -rf json -rff ../../benchmark_java.json -foe true -v NORMAL -f 1 -wi 2 -w 5s -i 3 -r 5s ".*(SingleProducerSingleConsumer|MultiProducerSingleConsumer|BlockingQueueBenchmark).*"
-```
+| Test | C++ | Java | **C++/Java** |
+|------|-----|------|--------------|
+| **SPSC** | 3.22 ns/op | 7.197 ns/op | **0.45x** ⬇️ (faster) |
 
-Then generate the comparison report:
-
-```bash
-bash scripts/compare_benchmarks.sh > comparison_report.md
-```
-
-The latest CI-generated comparison is written to `comparison_report.md`.
+*Results from GitHub Actions CI (4 cores, 3244 MHz). See [Benchmark Results](docs/BENCHMARK_RESULTS.md) for detailed data.*
 
 ## Documentation
 

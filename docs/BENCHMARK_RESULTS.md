@@ -5,9 +5,9 @@
 | Property | Value |
 |----------|-------|
 | Host | GitHub Actions Runner |
-| Date (UTC) | 2026-01-21T05:56:48+00:00 |
+| Date (UTC) | 2026-01-21T06:24:38+00:00 |
 | CPU Cores | 4 |
-| CPU Frequency | 3303.86 MHz |
+| CPU Frequency | 3244.47 MHz |
 | CPU Scaling | Enabled (system default) |
 | ASLR | Enabled |
 
@@ -28,20 +28,20 @@
 
 | Test | C++ | Java | **C++/Java Ratio** |
 |------|-----|------|-------------------|
-| **SPSC** | 267.4 Mops/sec | 130.8 Mops/sec | **2.04x** ⬆️ |
-| **MPSC (单事件)** | 40.9 Mops/sec | 36.3 Mops/sec | **1.13x** ⬆️ |
-| **MPSC (批量)** | 292.3 Mops/sec | 203.9 Mops/sec | **1.43x** ⬆️ |
+| **SPSC** | 310.6 Mops/sec | 138.9 Mops/sec | **2.24x** ⬆️ |
+| **MPSC (单事件)** | 51.4 Mops/sec | 36.1 Mops/sec | **1.42x** ⬆️ |
+| **MPSC (批量)** | 291.6 Mops/sec | 208.1 Mops/sec | **1.40x** ⬆️ |
 
 ### Latency Comparison (SPSC Only)
 
 | Test | C++ | Java | **C++/Java Ratio** |
 |------|-----|------|-------------------|
-| **SPSC** | 3.74 ns/op | 7.646 ns/op | **0.49x** ⬇️ (faster) |
+| **SPSC** | 3.22 ns/op | 7.197 ns/op | **0.45x** ⬇️ (faster) |
 
 **Note**: 
 - **SPSC**: Both C++ and Java measure latency directly
-  - Java: `@BenchmarkMode(Mode.AverageTime)` → `7.646 ns/op`
-  - C++: Google Benchmark Time mode → `3.74 ns/op`
+  - Java: `@BenchmarkMode(Mode.AverageTime)` → `7.197 ns/op`
+  - C++: Google Benchmark Time mode → `3.22 ns/op`
 - **MPSC**: Both use throughput mode only (aligned with Java `@BenchmarkMode(Mode.Throughput)`)
   - Java: Only outputs throughput (`ops/ms`), no latency/time data
   - C++: Uses `SetItemsProcessed()` to calculate throughput directly (not derived from time)
@@ -51,34 +51,35 @@
 
 | Test | C++ | Java | **C++/Java Ratio** |
 |------|-----|------|-------------------|
-| **SPSC End-to-End** | 261 Mops/sec | 150 Mops/sec | **1.74x** ⬆️ |
+| **SPSC End-to-End** | 260 Mops/sec | 155 Mops/sec | **1.68x** ⬆️ |
 
 ---
 
 ## Detailed Results
 
-### C++ Disruptor Benchmarks (2026-01-21T05:56:48)
+### C++ Disruptor Benchmarks (2026-01-21T06:24:38)
 
 | Benchmark | Throughput | Iterations | Notes |
 |-----------|------------|------------|-------|
-| **SPSC** | 267.4 Mops/sec | 3 | Latency: 3.74 ns/op (for reference only) |
-| **MPSC (单事件)** | 40.9 Mops/sec | 3 | 4 threads, throughput only (aligned with Java) |
-| **MPSC (批量)** | 292.3 Mops/sec | 3 | 4 threads, items_per_second: 292.331M/s |
+| **SPSC** | 310.6 Mops/sec | 3 | Latency: 3.22 ns/op (for reference only) |
+| **MPSC (单事件)** | 51.4 Mops/sec | 3 | 4 threads, items_per_second: 51.4493M/s (mean) |
+| **MPSC (批量)** | 291.6 Mops/sec | 3 | 4 threads, items_per_second: 291.591M/s (mean) |
 
 **SPSC Details:**
-- Latency: 3.74 ns/op (mean), 3.75 ns/op (median)
-- stddev: 0.022 ns, cv: 0.58%
-- sp_wrap_wait_entries: 1.78033k
-- sp_wrap_wait_entries_per_op: 954.18n
+- Latency: 3.22 ns/op (mean), 3.22 ns/op (median)
+- stddev: 0.003 ns, cv: 0.10%
+- sp_wrap_wait_entries: 2.073k
+- sp_wrap_wait_entries_per_op: 953.613n
 
 **MPSC (单事件) Details:**
-- Throughput: 40.9 Mops/sec (4 threads total)
+- Throughput: 51.4 Mops/sec (4 threads total)
+- items_per_second: 51.4493M/s (mean), 51.5944M/s (median)
 - Threads: 4
-- Note: Throughput measurement only (aligned with Java `Mode.Throughput`)
+- Note: Throughput measurement using `SetItemsProcessed()` (aligned with Java `Mode.Throughput`)
 
 **MPSC (批量) Details:**
-- Throughput: 292.3 Mops/sec (4 threads total)
-- items_per_second: 292.331M/s
+- Throughput: 291.6 Mops/sec (4 threads total)
+- items_per_second: 291.591M/s (mean), 296.214M/s (median)
 - Threads: 4
 - Note: Throughput measurement only (aligned with Java `Mode.Throughput`)
 
@@ -86,65 +87,65 @@
 
 | Benchmark | Mode | Score | Error | Units | Iterations |
 |-----------|------|-------|-------|-------|------------|
-| **SPSC** | avgt | 7.646 | ±0.468 | ns/op | 3 |
-| **MPSC (单事件)** | thrpt | 36276.427 | ±1229.441 | ops/ms | 3 |
-| **MPSC (批量)** | thrpt | 203878.950 | ±9179.161 | ops/ms | 3 |
+| **SPSC** | avgt | 7.197 | ±0.456 | ns/op | 3 |
+| **MPSC (单事件)** | thrpt | 36075.522 | ±2336.050 | ops/ms | 3 |
+| **MPSC (批量)** | thrpt | 208051.272 | ±7114.622 | ops/ms | 3 |
 
 **SPSC Details:**
-- min: 7.488 ns/op
-- max: 7.737 ns/op
-- stdev: 0.137
-- CI (99.9%): [5.147, 10.144]
+- min: 7.177 ns/op
+- max: 7.225 ns/op
+- stdev: 0.025
+- CI (99.9%): [6.742, 7.653]
 
 **MPSC (单事件) Details:**
-- min: 36219.647 ops/ms
-- max: 36350.897 ops/ms
-- stdev: 67.390
-- CI (99.9%): [35046.985, 37505.868]
+- min: 35961.517 ops/ms
+- max: 36214.060 ops/ms
+- stdev: 128.047
+- CI (99.9%): [33739.473, 38411.572]
 - Threads: 4
 
 **MPSC (批量) Details:**
-- min: 203387.948 ops/ms
-- max: 204393.409 ops/ms
-- stdev: 503.141
-- CI (99.9%): [194699.789, 213058.110]
+- min: 207601.079 ops/ms
+- max: 208285.118 ops/ms
+- stdev: 389.976
+- CI (99.9%): [200936.650, 215165.894]
 - Threads: 4
 
 ### End-to-End Tests
 
-#### C++ OneToOneSequencedThroughputTest (2026-01-21T05:59:50)
+#### C++ OneToOneSequencedThroughputTest (2026-01-21T06:27:40)
 
 | Run | Throughput (ops/sec) | BatchPercent | AverageBatchSize |
 |-----|---------------------|--------------|------------------|
-| 0 | 260,416,666 | 99.92% | 1,220 |
-| 1 | 247,524,752 | 99.88% | 810 |
-| 2 | 260,416,666 | 99.98% | 4,157 |
-| 3 | 263,852,242 | 100.00% | 32,733 |
-| 4 | 263,157,894 | 100.00% | 32,723 |
-| 5 | 261,096,605 | 100.00% | 32,733 |
-| 6 | 263,157,894 | 100.00% | 32,510 |
+| 0 | 263,852,242 | 99.99% | 13,789 |
+| 1 | 263,157,894 | 99.99% | 14,409 |
+| 2 | 262,467,191 | 100.00% | 32,701 |
+| 3 | 263,852,242 | 100.00% | 32,573 |
+| 4 | 255,754,475 | 100.00% | 32,701 |
+| 5 | 256,410,256 | 100.00% | 32,584 |
+| 6 | 253,807,106 | 100.00% | 32,289 |
 
 **Summary:**
-- Average: 261 Mops/sec
-- Range: 247-264 Mops/sec
-- avg_batch_size: 32.5098k
+- Average: 260 Mops/sec
+- Range: 253-264 Mops/sec
+- avg_batch_size: 32.2893k
 - batch_percent: 99.9969%
 
 #### Java OneToOneSequencedThroughputTest
 
 | Run | Throughput (ops/sec) | BatchPercent | AverageBatchSize |
 |-----|---------------------|--------------|------------------|
-| 0 | 189,035,916 | 96.37% | 27 |
-| 1 | 145,137,880 | 92.49% | 13 |
-| 2 | 146,198,830 | 92.39% | 13 |
-| 3 | 143,884,892 | 91.99% | 12 |
-| 4 | 143,678,160 | 91.75% | 12 |
-| 5 | 146,842,878 | 92.22% | 12 |
-| 6 | 143,678,160 | 91.87% | 12 |
+| 0 | 194,174,757 | 96.14% | 25 |
+| 1 | 153,374,233 | 94.34% | 17 |
+| 2 | 172,117,039 | 95.09% | 20 |
+| 3 | 155,520,995 | 93.40% | 15 |
+| 4 | 150,375,939 | 92.78% | 13 |
+| 5 | 164,744,645 | 94.27% | 17 |
+| 6 | 151,057,401 | 92.59% | 13 |
 
 **Summary:**
-- Average: 150 Mops/sec
-- Range: 143-189 Mops/sec
+- Average: 155 Mops/sec
+- Range: 150-194 Mops/sec
 
 ---
 
