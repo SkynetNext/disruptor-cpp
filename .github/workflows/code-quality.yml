@@ -357,35 +357,71 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install cppcheck
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cppcheck
+          sudo apt-get install -y \
+            build-essential \
+            ninja-build \
+            liblz4-dev \
+            libpthread-stubs0-dev \
+            cppcheck
           cppcheck --version
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.30'
+
+      - name: Configure CMake (for compile_commands.json)
+        shell: bash
+        run: |
+          CMAKE_ARGS=(
+            -B build
+            -G Ninja
+            -DCMAKE_BUILD_TYPE=Debug
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            -DBUILD_TESTING=ON
+            -DBUILD_BENCHMARKS=OFF
+            -DBUILD_EXAMPLES=ON
+          )
+          cmake "${CMAKE_ARGS[@]}"
+
+      - name: Build (to generate complete compile_commands.json)
+        run: |
+          # Build at least some targets to ensure compile_commands.json is complete
+          cmake --build build --config Debug --parallel 2 --target disruptor_cpp_tests || true
+
+      - name: Verify compile_commands.json
+        run: |
+          if [ -f build/compile_commands.json ]; then
+            echo "✓ compile_commands.json found"
+            echo "Entries: $(jq length build/compile_commands.json 2>/dev/null || echo 'unknown')"
+          else
+            echo "::error::compile_commands.json not found, cppcheck will use fallback mode"
+            exit 1
+          fi
 
       - name: Run cppcheck
         run: |
-          # Run cppcheck on source files
+          # Use compile_commands.json to get all CMake include paths automatically
+          # This eliminates the need to suppress missingInclude warnings
           # Exclude third-party code and build directories
-          # Suppress missingInclude (cppcheck doesn't know CMake include paths)
           # Suppress style warnings that are acceptable in test/example code
           cppcheck \
+            --project=build/compile_commands.json \
             --enable=all \
-            --suppress=missingInclude \
-            --suppress=missingIncludeSystem \
             --suppress=unusedFunction \
             --suppress=unmatchedSuppression \
             --suppress=useStlAlgorithm \
             --suppress=constParameterReference \
             --suppress=constParameterCallback \
             --inline-suppr \
-            --std=c++26 \
             --platform=unix64 \
             --error-exitcode=1 \
             --xml \
             --xml-version=2 \
             --output-file=cppcheck-report.xml \
-            include tests examples benchmarks \
             -i third_party \
             -i reference \
             -i build \
@@ -395,19 +431,16 @@ jobs:
           # Also output to console for visibility (only errors and warnings, not info)
           # Note: errors are reported by default, --enable=warning enables warning checks
           cppcheck \
+            --project=build/compile_commands.json \
             --enable=warning \
-            --suppress=missingInclude \
-            --suppress=missingIncludeSystem \
             --suppress=unusedFunction \
             --suppress=unmatchedSuppression \
             --suppress=useStlAlgorithm \
             --suppress=constParameterReference \
             --suppress=constParameterCallback \
             --inline-suppr \
-            --std=c++26 \
             --platform=unix64 \
             --error-exitcode=1 \
-            include tests examples benchmarks \
             -i third_party \
             -i reference \
             -i build \
