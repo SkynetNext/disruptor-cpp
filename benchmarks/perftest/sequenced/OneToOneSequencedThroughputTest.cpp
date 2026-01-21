@@ -90,8 +90,11 @@ public:
     // (Java's executor.submit will start a new run even if previous one finished)
     if (batchEventProcessor_->isRunning()) {
       batchEventProcessor_->halt();
-      // Wait a bit for processor to stop (Java doesn't need this as executor handles it)
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      // Wait for processor to actually stop (C++ requires explicit thread management)
+      // Java's executor handles this automatically, but in C++ we must wait
+      while (batchEventProcessor_->isRunning()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      }
     }
     
     // Use atomic bool as latch (CountDownLatch equivalent)
@@ -105,8 +108,20 @@ public:
     std::atomic<bool> threadError{false};
     std::string threadErrorMsg;
     
+    // RAII wrapper to ensure thread is always joined (C++ exception safety)
+    // In Java, executor manages thread lifecycle automatically
+    struct ThreadGuard {
+      std::thread t;
+      ~ThreadGuard() {
+        if (t.joinable()) {
+          t.join();
+        }
+      }
+    };
+    
     // Start processor in separate thread (Java: executor.submit(batchEventProcessor))
-    std::thread processorThread([this, &threadError, &threadErrorMsg]() {
+    ThreadGuard processorThreadGuard;
+    processorThreadGuard.t = std::thread([this, &threadError, &threadErrorMsg]() {
       try {
         batchEventProcessor_->run();
       } catch (const std::exception& e) {
@@ -132,6 +147,8 @@ public:
     // Wait for completion (Java: latch.await())
     while (!latch->load(std::memory_order_acquire)) {
       if (threadError.load()) {
+        // Halt processor before throwing (ensure cleanup)
+        batchEventProcessor_->halt();
         throw std::runtime_error("Processor thread error: " + threadErrorMsg);
       }
       std::this_thread::yield();
@@ -160,9 +177,10 @@ public:
     // Java: batchEventProcessor.halt()
     batchEventProcessor_->halt();
     
-    // Wait for processor thread to finish
-    if (processorThread.joinable()) {
-      processorThread.join();
+    // Wait for processor thread to actually stop (C++ requires explicit wait)
+    // ThreadGuard destructor will ensure join() even if exception is thrown
+    while (batchEventProcessor_->isRunning()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     // Verify result (Java: failIfNot(expectedResult, handler.getValue()))
@@ -223,12 +241,13 @@ void PerfTest_OneToOneSequencedThroughputTest(benchmark::State& state) {
   
   // Create test instance once (like Java's main() creates test instance)
   // The instance is reused across all 7 runs, matching Java's structure
-  static OneToOneSequencedThroughputTest* test = nullptr;
+  // Use unique_ptr for RAII (C++ best practice: avoid raw pointers)
+  static std::unique_ptr<OneToOneSequencedThroughputTest> test;
   static bool headerPrinted = false;
   static int runCounter = 0;
   
-  if (test == nullptr) {
-    test = new OneToOneSequencedThroughputTest();
+  if (!test) {
+    test = std::make_unique<OneToOneSequencedThroughputTest>();
     
     // Print header and processor check (like Java's testImplementations())
     const int availableProcessors = std::thread::hardware_concurrency();
@@ -266,9 +285,9 @@ void PerfTest_OneToOneSequencedThroughputTest(benchmark::State& state) {
   }
   
   // Cleanup after all runs (when benchmark is done)
+  // unique_ptr automatically handles deletion (RAII)
   if (state.iterations() >= kRuns) {
-    delete test;
-    test = nullptr;
+    test.reset();
     headerPrinted = false;
   }
 }
