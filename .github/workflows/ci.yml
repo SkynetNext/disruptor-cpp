@@ -170,7 +170,7 @@ jobs:
           chmod +x gradlew
           ./gradlew jmhJar --no-daemon
 
-      - name: Run Java Disruptor JMH Benchmarks (End-to-End: SPSC & MPSC)
+      - name: "Run Java Disruptor JMH Benchmarks (End-to-End: SPSC & MPSC)"
         working-directory: reference/disruptor
         run: |
           echo "=========================================="

@@ -4,6 +4,9 @@
 
 #include "disruptor/EventFactory.h"
 
+#include <cstdint>
+#include <memory>
+
 namespace disruptor::bench::perftest::support {
 
 class ValueEvent {
