@@ -34,6 +34,8 @@ jobs:
         if: matrix.compiler == 'clang'
         run: |
           sudo apt-get update
+          # Install GCC 14 first to get libstdc++ with C++23 support (std::expected)
+          sudo apt-get install -y gcc-14 g++-14
           sudo apt-get install -y clang-19
           sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 100
           sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 100
@@ -58,6 +60,8 @@ jobs:
             CMAKE_ARGS+=(-DCMAKE_CXX_COMPILER=g++)
           else
             CMAKE_ARGS+=(-DCMAKE_CXX_COMPILER=clang++)
+            # Ensure Clang uses GCC 14's libstdc++ for C++23 features like std::expected
+            CMAKE_ARGS+=(-DCMAKE_CXX_FLAGS="-stdlib=libstdc++")
           fi
           # CMakeLists.txt sets CMAKE_CXX_STANDARD=26, CMake will handle the compiler flag
           cmake "${CMAKE_ARGS[@]}"
