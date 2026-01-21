@@ -41,8 +41,8 @@ jobs:
       - name: Install CMake
         uses: jwlawson/actions-setup-cmake@v1.14
         with:
-          # CMake 3.28+ required for C++26 support
-          cmake-version: "3.28"
+          # CMake 3.30+ required for full cxx_std_26 support
+          cmake-version: "3.30"
 
       - name: Configure CMake
         shell: bash
@@ -111,8 +111,8 @@ jobs:
       - name: Install CMake
         uses: jwlawson/actions-setup-cmake@v1.14
         with:
-          # CMake 3.28+ required for C++26 support
-          cmake-version: "3.28"
+          # CMake 3.30+ required for full cxx_std_26 support
+          cmake-version: "3.30"
 
       - name: Build C++ benchmarks
         run: |
