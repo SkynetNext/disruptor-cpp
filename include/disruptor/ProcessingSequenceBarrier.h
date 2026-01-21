@@ -27,11 +27,9 @@ public:
                             Sequence* const* dependentSequences,
                             int dependentCount)
       : waitStrategy_(&waitStrategy),
-        dependentSequence_(nullptr),
         alerted_(false),
         cursorSequence_(&cursorSequence),
-        sequencer_(&sequencer),
-        fixedGroup_() {
+        sequencer_(&sequencer) {
     if (dependentCount == 0) {
       dependentSequence_ = &cursorSequence;
     } else {
@@ -72,7 +70,7 @@ public:
 
 private:
   WaitStrategyT* waitStrategy_;
-  Sequence* dependentSequence_;
+  Sequence* dependentSequence_ = nullptr;
   std::atomic<bool> alerted_;
   Sequence* cursorSequence_;
   SequencerT* sequencer_;
