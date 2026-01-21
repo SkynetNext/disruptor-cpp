@@ -38,6 +38,7 @@
 #include "perftest/support/ValueAdditionEventHandler.h"
 #include "perftest/support/ValueEvent.h"
 
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <memory>
@@ -145,34 +146,24 @@ public:
     if (elapsedMs == 0) elapsedMs = 1; // Avoid division by zero
 
     perfTestContext.setDisruptorOps((kIterations * 1000L) / elapsedMs);
-    // batchesProcessed will be read later, after waiting for sequence
-
-    // Wait for event processor sequence (Java: waitForEventProcessorSequence(expectedCount))
+    
+    // Java: perfTestContext.setBatchData(handler.getBatchesProcessed(), ITERATIONS);
+    // Read batchesProcessed after latch.await() (all events are processed)
+    int64_t batchesProcessed = handler_->getBatchesProcessed();
+    perfTestContext.setBatchData(batchesProcessed, kIterations);
+    
+    // Java: waitForEventProcessorSequence(expectedCount)
     while (batchEventProcessor_->getSequence().get() != expectedCount) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-
-    // IMPORTANT: Read batchesProcessed BEFORE halt(), as halt() might cause processor
-    // to stop processing and we want the count at the point when all events are processed
-    int64_t batchesProcessed = handler_->getBatchesProcessed();
     
+    // Java: batchEventProcessor.halt()
     batchEventProcessor_->halt();
     
     // Wait for processor thread to finish
     if (processorThread.joinable()) {
       processorThread.join();
     }
-    
-    // Re-read batchesProcessed after thread join to see if it changed
-    int64_t batchesProcessedAfter = handler_->getBatchesProcessed();
-    if (batchesProcessedAfter != batchesProcessed) {
-      std::cerr << "WARNING: batchesProcessed changed from " << batchesProcessed 
-                << " to " << batchesProcessedAfter << " after halt()" << std::endl;
-      batchesProcessed = batchesProcessedAfter;
-    }
-
-    // Set batch data (Java does this before waitForEventProcessorSequence, but we do it after to ensure accurate count)
-    perfTestContext.setBatchData(batchesProcessed, kIterations);
 
     // Verify result (Java: failIfNot(expectedResult, handler.getValue()))
     failIfNot(expectedResult_, handler_->getValue());
@@ -190,7 +181,7 @@ public:
       std::print("Processors required = {} available = {}\n", getRequiredProcessorCount(), availableProcessors);
     }
 
-    PerfTestContext contexts[kRuns];
+    std::array<PerfTestContext, kRuns> contexts;
 
     std::print("Starting Disruptor tests\n");
     for (int i = 0; i < kRuns; i++) {

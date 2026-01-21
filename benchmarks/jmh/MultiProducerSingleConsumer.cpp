@@ -4,7 +4,6 @@
 #include "jmh_util.h"
 
 #include "disruptor/BusySpinWaitStrategy.h"
-#include "disruptor/TimeoutException.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 

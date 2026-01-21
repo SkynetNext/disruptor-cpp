@@ -151,13 +151,17 @@ jobs:
         run: |
           cd build
           echo "=========================================="
-          echo "C++ Disruptor Benchmarks"
+          echo "C++ Disruptor Benchmarks (End-to-End: SPSC & MPSC)"
           echo "=========================================="
+          # Parameters match Java JMH: -wi 2 -w 5s -i 3 -r 5s
+          # -wi 2 -w 5s: 2 warmup iterations, 5s each = 10s total warmup
+          # -i 3 -r 5s: 3 measurement iterations, 5s each
+          # Note: benchmark_min_warmup_time is double (seconds), not string like benchmark_min_time
           ./benchmarks/disruptor_cpp_benchmarks \
             --benchmark_min_warmup_time=10 \
             --benchmark_min_time=5s \
             --benchmark_repetitions=3 \
-            --benchmark_filter=JMH_.*
+            --benchmark_filter="JMH_SingleProducerSingleConsumer_producing|JMH_MultiProducerSingleConsumer_producing"
           cd ..
 
       - name: Build Java Disruptor
@@ -166,18 +170,46 @@ jobs:
           chmod +x gradlew
           ./gradlew jmhJar --no-daemon
 
-      - name: Run Java Disruptor JMH Benchmarks (typical production scenarios)
+      - name: Run Java Disruptor JMH Benchmarks (End-to-End: SPSC & MPSC)
         working-directory: reference/disruptor
         run: |
           echo "=========================================="
-          echo "Java Disruptor Benchmarks"
+          echo "Java Disruptor Benchmarks (End-to-End: SPSC & MPSC)"
           echo "=========================================="
-          # Run ONLY typical aligned scenarios, using JMH's official CLI directly.
-          # Scenarios:
-          # - SingleProducerSingleConsumer
-          # - MultiProducerSingleConsumer
-          # - BlockingQueueBenchmark
+          # Run ONLY end-to-end tests matching C++ benchmarks:
+          # - SingleProducerSingleConsumer (SPSC)
+          # - MultiProducerSingleConsumer (MPSC)
+          #
+          # Parameters (matching C++):
+          # -f 1: 1 fork
+          # -wi 2 -w 5s: 2 warmup iterations, 5s each (10s total warmup)
+          # -i 3 -r 5s: 3 measurement iterations, 5s each
           java -jar build/libs/*-jmh.jar \
             -foe true -v NORMAL \
             -f 1 -wi 2 -w 5s -i 3 -r 5s \
-            ".*(SingleProducerSingleConsumer|MultiProducerSingleConsumer|BlockingQueueBenchmark).*"
+            ".*(SingleProducerSingleConsumer|MultiProducerSingleConsumer).*"
+
+      - name: Run C++ OneToOneSequencedThroughputTest (End-to-End Throughput)
+        run: |
+          cd build
+          echo "=========================================="
+          echo "C++ OneToOneSequencedThroughputTest (End-to-End Throughput)"
+          echo "=========================================="
+          # This is a throughput test (100M iterations), not a micro-benchmark
+          # It runs 7 iterations by default (matching Java's AbstractPerfTestDisruptor.RUNS = 7)
+          ./benchmarks/disruptor_cpp_benchmarks \
+            --benchmark_filter="PerfTest_OneToOneSequencedThroughputTest" \
+            --benchmark_min_time=1s \
+            --benchmark_repetitions=1
+          cd ..
+
+      - name: Run Java OneToOneSequencedThroughputTest (End-to-End Throughput)
+        working-directory: reference/disruptor
+        run: |
+          echo "=========================================="
+          echo "Java OneToOneSequencedThroughputTest (End-to-End Throughput)"
+          echo "=========================================="
+          # Build perftest classes
+          ./gradlew perftestClasses --no-daemon
+          # Run the test (matches C++: 7 runs, 100M iterations each)
+          bash ../../scripts/run_java_perftest.sh
