@@ -6,10 +6,17 @@ function(add_disruptor_example target source)
   add_executable(${target} ${source})
   target_link_libraries(${target} PRIVATE disruptor-cpp)
   target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/include ${DISRUPTOR_EXAMPLES_ROOT})
+  # Compiler warnings: treat warnings as errors for project code
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    target_compile_options(${target} PRIVATE -Wno-unused-parameter)
+    target_compile_options(${target} PRIVATE 
+      -Werror
+      -Wno-unused-parameter
+    )
   elseif(MSVC)
-    target_compile_options(${target} PRIVATE /wd4100)
+    target_compile_options(${target} PRIVATE 
+      /WX  # Treat warnings as errors
+      /wd4100  # Suppress unused parameter warnings
+    )
   endif()
 endfunction()
 

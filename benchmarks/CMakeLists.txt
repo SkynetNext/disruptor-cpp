@@ -79,8 +79,17 @@ target_include_directories(disruptor_cpp_benchmarks
 )
 
 # Set optimization flags for benchmarks
+# Compiler warnings: treat warnings as errors for project code
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(disruptor_cpp_benchmarks PRIVATE -O3 -march=native -mtune=native -Wno-unused-parameter)
+    target_compile_options(disruptor_cpp_benchmarks PRIVATE 
+        -O3 -march=native -mtune=native
+        -Werror
+        -Wno-unused-parameter
+    )
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    target_compile_options(disruptor_cpp_benchmarks PRIVATE /O2 /arch:AVX2 /wd4100)
+    target_compile_options(disruptor_cpp_benchmarks PRIVATE 
+        /O2 /arch:AVX2
+        /WX  # Treat warnings as errors
+        /wd4100  # Suppress unused parameter warnings
+    )
 endif()

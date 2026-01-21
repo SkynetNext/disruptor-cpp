@@ -40,11 +40,17 @@ if(DISRUPTOR_PORTED_TEST_SOURCES)
             ${CMAKE_SOURCE_DIR}
     )
 
-    # Suppress unused parameter warnings for tests
+    # Compiler warnings: treat warnings as errors for project code
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-        target_compile_options(disruptor_cpp_tests PRIVATE -Wno-unused-parameter)
+        target_compile_options(disruptor_cpp_tests PRIVATE 
+            -Werror
+            -Wno-unused-parameter
+        )
     elseif(MSVC)
-        target_compile_options(disruptor_cpp_tests PRIVATE /wd4100)
+        target_compile_options(disruptor_cpp_tests PRIVATE 
+            /WX  # Treat warnings as errors
+            /wd4100  # Suppress unused parameter warnings
+        )
     endif()
 
     include(GoogleTest)

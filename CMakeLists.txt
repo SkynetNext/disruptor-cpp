@@ -46,11 +46,17 @@ target_link_libraries(disruptor-cpp
 # Set target properties
 target_compile_features(disruptor-cpp INTERFACE cxx_std_26)
 
-# Suppress unused parameter warnings
+# Compiler warnings: treat warnings as errors for project code
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    target_compile_options(disruptor-cpp INTERFACE -Wno-unused-parameter)
+    target_compile_options(disruptor-cpp INTERFACE 
+        -Werror
+        -Wno-unused-parameter
+    )
 elseif(MSVC)
-    target_compile_options(disruptor-cpp INTERFACE /wd4100)
+    target_compile_options(disruptor-cpp INTERFACE 
+        /WX  # Treat warnings as errors
+        /wd4100  # Suppress unused parameter warnings
+    )
 endif()
 
 # Add subdirectories conditionally
