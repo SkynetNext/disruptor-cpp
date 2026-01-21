@@ -27,7 +27,7 @@
 - ✅ Comprehensive unit tests
 - ✅ Performance benchmarks
 - ✅ Cross-platform support (Windows/Linux/macOS)
-- ✅ C++20 compatible
+- ✅ C++26 compatible
 
 ## Performance
 

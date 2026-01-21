@@ -10,7 +10,7 @@ on:
 jobs:
   test:
     name: Test - Linux
-    # Pin to keep compiler availability stable (clang-18/gcc-13 are available on 24.04).
+    # C++26 requires GCC 14+ / Clang 19+
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -26,22 +26,23 @@ jobs:
         if: matrix.compiler == 'gcc'
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-13 g++-13
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+          sudo apt-get install -y gcc-14 g++-14
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
 
       - name: Setup Clang
         if: matrix.compiler == 'clang'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-18
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
+          sudo apt-get install -y clang-19
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 100
 
       - name: Install CMake
         uses: jwlawson/actions-setup-cmake@v1.14
         with:
-          cmake-version: "3.20"
+          # CMake 3.28+ required for C++26 support
+          cmake-version: "3.28"
 
       - name: Configure CMake
         shell: bash
@@ -58,6 +59,7 @@ jobs:
           else
             CMAKE_ARGS+=(-DCMAKE_CXX_COMPILER=clang++)
           fi
+          # CMakeLists.txt sets CMAKE_CXX_STANDARD=26, CMake will handle the compiler flag
           cmake "${CMAKE_ARGS[@]}"
 
       - name: Build
@@ -109,10 +111,12 @@ jobs:
       - name: Install CMake
         uses: jwlawson/actions-setup-cmake@v1.14
         with:
-          cmake-version: "3.20"
+          # CMake 3.28+ required for C++26 support
+          cmake-version: "3.28"
 
       - name: Build C++ benchmarks
         run: |
+          # CMakeLists.txt sets CMAKE_CXX_STANDARD=26, CMake will handle the compiler flag
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_TESTING=OFF \

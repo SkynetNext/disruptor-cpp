@@ -147,9 +147,10 @@ sudo mount -t hugetlbfs nodev /mnt/huge
    - Ensure CMake is installed and in PATH
    - Windows: Add CMake bin directory to system PATH
 
-2. **C++20 Not Supported**
-   - Update compiler: GCC 10+, Clang 11+, MSVC 2019+
+2. **C++26 Not Supported**
+   - Update compiler: GCC 14+, Clang 19+, MSVC 2025+
    - Check compiler version: `g++ --version` or `clang++ --version`
+   - Note: C++26 is a future standard; ensure your compiler supports experimental C++26 features
 
 3. **Google Test/Benchmark Download Fails**
    - Check internet connection

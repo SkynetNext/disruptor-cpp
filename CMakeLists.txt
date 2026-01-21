@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(disruptor-cpp VERSION 1.0.0 LANGUAGES CXX)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -44,7 +44,7 @@ target_link_libraries(disruptor-cpp
 )
 
 # Set target properties
-target_compile_features(disruptor-cpp INTERFACE cxx_std_20)
+target_compile_features(disruptor-cpp INTERFACE cxx_std_26)
 
 # Suppress unused parameter warnings
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
