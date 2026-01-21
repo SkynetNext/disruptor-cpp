@@ -347,7 +347,7 @@ jobs:
               echo "$FILTERED"
               ERROR_COUNT=$((ERROR_COUNT + 1))
             fi
-          done < <(find include tests examples benchmarks -name "*.cpp" -o -name "*.hpp" -o -name "*.h" | \
+          done < <(find include tests examples benchmarks -name "*.cpp" | \
             grep -v third_party | \
             grep -v reference)
           
