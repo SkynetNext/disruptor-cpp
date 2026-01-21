@@ -1,9 +1,9 @@
 // 1:1 port of:
 // reference/disruptor/src/examples/java/com/lmax/disruptor/examples/SequentialThreeConsumers.java
 
-#include "disruptor/dsl/Disruptor.h"
-#include "disruptor/EventHandler.h"
 #include "disruptor/BlockingWaitStrategy.h"
+#include "disruptor/EventHandler.h"
+#include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 
 #include <cstdint>
@@ -18,22 +18,32 @@ struct MyEvent {
 };
 
 struct MyEventFactory final : public disruptor::EventFactory<MyEvent> {
-  MyEvent newInstance() override { return MyEvent(); }
+  MyEvent newInstance() override {
+    return MyEvent();
+  }
 };
 
 class CopyAtoB final : public disruptor::EventHandler<MyEvent> {
 public:
-  void onEvent(MyEvent& event, int64_t /*sequence*/, bool /*endOfBatch*/) override { event.b = event.a; }
+  void onEvent(MyEvent& event, int64_t /*sequence*/, bool /*endOfBatch*/) override {
+    event.b = event.a;
+  }
 };
+
 class CopyBtoC final : public disruptor::EventHandler<MyEvent> {
 public:
-  void onEvent(MyEvent& event, int64_t /*sequence*/, bool /*endOfBatch*/) override { event.c = event.b; }
+  void onEvent(MyEvent& event, int64_t /*sequence*/, bool /*endOfBatch*/) override {
+    event.c = event.b;
+  }
 };
+
 class CopyCtoD final : public disruptor::EventHandler<MyEvent> {
 public:
-  void onEvent(MyEvent& event, int64_t /*sequence*/, bool /*endOfBatch*/) override { event.d = event.c; }
+  void onEvent(MyEvent& event, int64_t /*sequence*/, bool /*endOfBatch*/) override {
+    event.d = event.c;
+  }
 };
-} // namespace
+}  // namespace
 
 int main() {
   auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
@@ -53,5 +63,3 @@ int main() {
   disruptor.shutdown();
   return 0;
 }
-
-

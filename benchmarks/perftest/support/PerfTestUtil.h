@@ -27,5 +27,4 @@ inline void failIfNot(int64_t a, int64_t b) {
   }
 }
 
-} // namespace disruptor::bench::perftest::support
-
+}  // namespace disruptor::bench::perftest::support

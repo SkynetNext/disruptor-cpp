@@ -1,4 +1,5 @@
 #pragma once
+
 // Template-friendly SequenceBarrier (no virtual dispatch).
 //
 // In the typed implementation, a "barrier" is just a type that provides:
@@ -11,6 +12,5 @@
 //
 // This file no longer defines a base class. It is kept as documentation and a
 // compatibility placeholder while the codebase is migrated.
-
 
 namespace disruptor {}  // namespace disruptor

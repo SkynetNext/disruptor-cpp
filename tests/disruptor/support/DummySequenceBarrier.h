@@ -11,14 +11,23 @@ namespace disruptor::support {
 // DummySequenceBarrier implements the SequenceBarrier concept (no base class)
 class DummySequenceBarrier final {
 public:
-  int64_t waitFor(int64_t /*sequence*/) { return 0; }
-  int64_t getCursor() const { return 0; }
-  bool isAlerted() const { return false; }
+  int64_t waitFor(int64_t /*sequence*/) {
+    return 0;
+  }
+
+  int64_t getCursor() const {
+    return 0;
+  }
+
+  bool isAlerted() const {
+    return false;
+  }
+
   void alert() {}
+
   void clearAlert() {}
+
   void checkAlert() {}
 };
 
-} // namespace disruptor::support
-
-
+}  // namespace disruptor::support

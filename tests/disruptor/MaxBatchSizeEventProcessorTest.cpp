@@ -14,9 +14,11 @@ namespace {
 static constexpr int MAX_BATCH_SIZE = 3;
 static constexpr int PUBLISH_COUNT = 5;
 
-class BatchLimitRecordingHandler final : public disruptor::EventHandler<disruptor::support::StubEvent> {
+class BatchLimitRecordingHandler final
+  : public disruptor::EventHandler<disruptor::support::StubEvent> {
 public:
-  explicit BatchLimitRecordingHandler(disruptor::test_support::CountDownLatch& latch) : latch_(&latch) {}
+  explicit BatchLimitRecordingHandler(disruptor::test_support::CountDownLatch& latch)
+    : latch_(&latch) {}
 
   void onBatchStart(int64_t batchSize, int64_t queueDepth) override {
     currentSequences.clear();
@@ -24,7 +26,8 @@ public:
     announcedQueueDepths.push_back(queueDepth);
   }
 
-  void onEvent(disruptor::support::StubEvent& /*event*/, int64_t sequence, bool endOfBatch) override {
+  void
+  onEvent(disruptor::support::StubEvent& /*event*/, int64_t sequence, bool endOfBatch) override {
     currentSequences.push_back(sequence);
     if (endOfBatch) {
       batchedSequences.push_back(currentSequences);
@@ -40,7 +43,7 @@ private:
   disruptor::test_support::CountDownLatch* latch_;
   std::vector<int64_t> currentSequences;
 };
-} // namespace
+}  // namespace
 
 TEST(MaxBatchSizeEventProcessorTest, shouldLimitTheBatchToConfiguredMaxBatchSize) {
   using Event = disruptor::support::StubEvent;

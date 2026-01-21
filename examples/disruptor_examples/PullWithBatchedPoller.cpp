@@ -14,26 +14,35 @@
 
 namespace {
 
-template <typename T, typename SequencerT> class BatchedPoller {
+template <typename T, typename SequencerT>
+class BatchedPoller {
 public:
   struct DataEvent {
     T data{};
 
     static std::shared_ptr<disruptor::EventFactory<DataEvent>> factory() {
       struct F final : public disruptor::EventFactory<DataEvent> {
-        DataEvent newInstance() override { return DataEvent(); }
+        DataEvent newInstance() override {
+          return DataEvent();
+        }
       };
+
       return std::make_shared<F>();
     }
 
-    T copyOfData() { return data; }
-    void set(const T &d) { data = d; }
+    T copyOfData() {
+      return data;
+    }
+
+    void set(const T& d) {
+      data = d;
+    }
   };
 
   using RingBufferT = disruptor::RingBuffer<DataEvent, SequencerT>;
 
-  BatchedPoller(RingBufferT &ringBuffer, int batchSize)
-      : poller_(ringBuffer.newPoller()), data_(batchSize) {
+  BatchedPoller(RingBufferT& ringBuffer, int batchSize)
+    : poller_(ringBuffer.newPoller()), data_(batchSize) {
     // Java: ringBuffer.addGatingSequences(poller.getSequence());
     ringBuffer.addGatingSequences(poller_->getSequence());
   }
@@ -53,9 +62,11 @@ private:
       data_.reserve(static_cast<size_t>(capacity));
     }
 
-    int msgCount() const { return static_cast<int>(data_.size()) - cursor_; }
+    int msgCount() const {
+      return static_cast<int>(data_.size()) - cursor_;
+    }
 
-    bool addDataItem(const T &item) {
+    bool addDataItem(const T& item) {
       if (static_cast<int>(data_.size()) >= capacity_) {
         throw std::out_of_range("Attempting to add item to full batch");
       }
@@ -85,11 +96,12 @@ private:
     int cursor_{0};
   };
 
-  template <typename PollerT> class Handler final : public PollerT::Handler {
+  template <typename PollerT>
+  class Handler final : public PollerT::Handler {
   public:
-    explicit Handler(BatchedData *batch) : batch_(batch) {}
-    bool onEvent(DataEvent &event, int64_t /*sequence*/,
-                 bool /*endOfBatch*/) override {
+    explicit Handler(BatchedData* batch) : batch_(batch) {}
+
+    bool onEvent(DataEvent& event, int64_t /*sequence*/, bool /*endOfBatch*/) override {
       T item = event.copyOfData();
       // Java: return item != null ? batch.addDataItem(item) : false;
       // In C++ example, treat default-constructed as "null".
@@ -97,7 +109,7 @@ private:
     }
 
   private:
-    BatchedData *batch_;
+    BatchedData* batch_;
   };
 
   void loadNextValues() {
@@ -110,19 +122,19 @@ private:
   BatchedData data_;
 };
 
-} // namespace
+}  // namespace
 
 int main() {
   int batchSize = 40;
   using WS = disruptor::BlockingWaitStrategy;
   WS ws;
   using Seq = disruptor::MultiProducerSequencer<WS>;
-  using Ev = typename BatchedPoller<void *, Seq>::DataEvent;
+  using Ev = typename BatchedPoller<void*, Seq>::DataEvent;
   using RB = disruptor::RingBuffer<Ev, Seq>;
   auto ringBuffer = RB::createMultiProducer(Ev::factory(), 1024, ws);
 
-  BatchedPoller<void *, Seq> poller(*ringBuffer, batchSize);
-  void *value = poller.poll();
+  BatchedPoller<void*, Seq> poller(*ringBuffer, batchSize);
+  void* value = poller.poll();
   (void)value;
   return 0;
 }

@@ -1,9 +1,9 @@
 // 1:1-ish port of:
 // reference/disruptor/src/examples/java/com/lmax/disruptor/examples/HandleExceptionOnTranslate.java
 
-#include "disruptor/dsl/Disruptor.h"
-#include "disruptor/EventHandler.h"
 #include "disruptor/BlockingWaitStrategy.h"
+#include "disruptor/EventHandler.h"
+#include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 
 #include "support/LongEvent.h"
@@ -19,7 +19,9 @@ constexpr int64_t NO_VALUE_SPECIFIED = -1;
 
 class MyHandler final : public disruptor::EventHandler<disruptor_examples::support::LongEvent> {
 public:
-  void onEvent(disruptor_examples::support::LongEvent& event, int64_t sequence, bool /*endOfBatch*/) override {
+  void onEvent(disruptor_examples::support::LongEvent& event,
+               int64_t sequence,
+               bool /*endOfBatch*/) override {
     if (event.get() == NO_VALUE_SPECIFIED) {
       std::printf("Discarded\n");
     } else {
@@ -28,7 +30,7 @@ public:
   }
 };
 
-} // namespace
+}  // namespace
 
 int main() {
   auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
@@ -65,5 +67,3 @@ int main() {
   disruptor.shutdown();
   return 0;
 }
-
-

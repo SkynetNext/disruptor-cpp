@@ -22,15 +22,20 @@ struct TestEvent {
   std::string s;
 
   struct Factory final : public disruptor::EventFactory<TestEvent> {
-    TestEvent newInstance() override { return TestEvent(); }
+    TestEvent newInstance() override {
+      return TestEvent();
+    }
   };
-  static inline std::shared_ptr<disruptor::EventFactory<TestEvent>> FACTORY = std::make_shared<Factory>();
+
+  static inline std::shared_ptr<disruptor::EventFactory<TestEvent>> FACTORY =
+    std::make_shared<Factory>();
 };
 
 class TestEventHandler final : public disruptor::EventHandler<TestEvent> {
 public:
   void onEvent(TestEvent& event, int64_t sequence, bool /*endOfBatch*/) override {
-    if (event.sequence != sequence || event.a != sequence + 13 || event.b != sequence - 7 || event.s != ("wibble-" + std::to_string(sequence))) {
+    if (event.sequence != sequence || event.a != sequence + 13 || event.b != sequence - 7
+        || event.s != ("wibble-" + std::to_string(sequence))) {
       ++failureCount;
     }
     ++messagesSeen;
@@ -39,13 +44,14 @@ public:
   int failureCount{0};
   int messagesSeen{0};
 };
-} // namespace
+}  // namespace
 
 TEST(DisruptorStressTest, shouldHandleLotsOfThreads_smoke) {
   using WS = disruptor::BusySpinWaitStrategy;
   auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
-  disruptor::dsl::Disruptor<TestEvent, disruptor::dsl::ProducerType::MULTI, WS> d(TestEvent::FACTORY, 1 << 12, tf, ws);
+  disruptor::dsl::Disruptor<TestEvent, disruptor::dsl::ProducerType::MULTI, WS> d(
+    TestEvent::FACTORY, 1 << 12, tf, ws);
 
   disruptor::FatalExceptionHandler<TestEvent> fatal;
   d.setDefaultExceptionHandler(fatal);
@@ -66,12 +72,14 @@ TEST(DisruptorStressTest, shouldHandleLotsOfThreads_smoke) {
 
   // Use full type to avoid name collision with outer scope 'rb'
   using RingBufferType = decltype(rb)::element_type;
+
   struct Publisher {
     std::shared_ptr<RingBufferType> ringBuffer;
     int iterations;
     std::barrier<>* barrier;
     disruptor::test_support::CountDownLatch* done;
     bool failed{false};
+
     void operator()() {
       try {
         barrier->arrive_and_wait();
@@ -105,8 +113,9 @@ TEST(DisruptorStressTest, shouldHandleLotsOfThreads_smoke) {
   // The Disruptor destructor will join, but that's too late - handlers would
   // already be destroyed by then.
   d.join();  // Wait for all consumer threads to finish
-  
-  for (auto& t : pubThreads) t.join();
+
+  for (auto& t : pubThreads)
+    t.join();
 
   for (auto& p : pubs) {
     EXPECT_FALSE(p->failed);

@@ -91,7 +91,7 @@ public:
 private:
   EventProcessor* eventprocessor_;
   BarrierPtrT barrier_;
-  bool endOfChain_ {true};
+  bool endOfChain_{true};
   std::thread thread_;
 };
 

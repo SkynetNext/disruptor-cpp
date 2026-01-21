@@ -15,15 +15,28 @@ public:
   std::string testString{};
 
   explicit StubEvent(int i) : value(i) {}
+
   StubEvent() = default;
 
-  void copy(const StubEvent& event) { value = event.value; }
+  void copy(const StubEvent& event) {
+    value = event.value;
+  }
 
-  int getValue() const { return value; }
-  void setValue(int v) { value = v; }
+  int getValue() const {
+    return value;
+  }
 
-  const std::string& getTestString() const { return testString; }
-  void setTestString(std::string s) { testString = std::move(s); }
+  void setValue(int v) {
+    value = v;
+  }
+
+  const std::string& getTestString() const {
+    return testString;
+  }
+
+  void setTestString(std::string s) {
+    testString = std::move(s);
+  }
 
   struct Translator final : public ::disruptor::EventTranslatorTwoArg<StubEvent, int, std::string> {
     void translateTo(StubEvent& event, int64_t /*sequence*/, int arg0, std::string arg1) override {
@@ -35,14 +48,17 @@ public:
   static inline Translator TRANSLATOR{};
 
   struct Factory final : public ::disruptor::EventFactory<StubEvent> {
-    StubEvent newInstance() override { return StubEvent(-1); }
+    StubEvent newInstance() override {
+      return StubEvent(-1);
+    }
   };
 
-  static inline std::shared_ptr<::disruptor::EventFactory<StubEvent>> EVENT_FACTORY = std::make_shared<Factory>();
+  static inline std::shared_ptr<::disruptor::EventFactory<StubEvent>> EVENT_FACTORY =
+    std::make_shared<Factory>();
 
-  bool operator==(const StubEvent& other) const { return value == other.value && testString == other.testString; }
+  bool operator==(const StubEvent& other) const {
+    return value == other.value && testString == other.testString;
+  }
 };
 
-} // namespace disruptor::support
-
-
+}  // namespace disruptor::support

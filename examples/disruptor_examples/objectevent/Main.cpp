@@ -1,9 +1,9 @@
 // 1:1-ish port of:
 // reference/disruptor/src/examples/java/com/lmax/disruptor/examples/objectevent/Main.java
 
-#include "disruptor/dsl/Disruptor.h"
-#include "disruptor/EventHandler.h"
 #include "disruptor/BlockingWaitStrategy.h"
+#include "disruptor/EventHandler.h"
+#include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 
 #include <cstdint>
@@ -15,7 +15,10 @@ namespace {
 template <typename T>
 struct ObjectEvent {
   T val{};
-  void clear() { val = T{}; }
+
+  void clear() {
+    val = T{};
+  }
 };
 
 template <typename T>
@@ -27,14 +30,18 @@ public:
 template <typename T>
 class ClearingEventHandler final : public disruptor::EventHandler<ObjectEvent<T>> {
 public:
-  void onEvent(ObjectEvent<T>& event, int64_t /*sequence*/, bool /*endOfBatch*/) override { event.clear(); }
+  void onEvent(ObjectEvent<T>& event, int64_t /*sequence*/, bool /*endOfBatch*/) override {
+    event.clear();
+  }
 };
 
 struct Factory final : public disruptor::EventFactory<ObjectEvent<std::string>> {
-  ObjectEvent<std::string> newInstance() override { return ObjectEvent<std::string>(); }
+  ObjectEvent<std::string> newInstance() override {
+    return ObjectEvent<std::string>();
+  }
 };
 
-} // namespace
+}  // namespace
 
 int main() {
   constexpr int bufferSize = 1024;
@@ -55,5 +62,3 @@ int main() {
   disruptor.shutdown();
   return 0;
 }
-
-

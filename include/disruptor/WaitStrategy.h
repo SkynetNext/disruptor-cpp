@@ -1,4 +1,5 @@
 #pragma once
+
 // Template-friendly WaitStrategy (no virtual dispatch).
 //
 // In the Java reference, WaitStrategy is an interface and the JVM typically

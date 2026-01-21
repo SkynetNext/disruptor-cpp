@@ -2,8 +2,8 @@
 // 1:1 port of:
 // reference/disruptor/src/examples/java/com/lmax/disruptor/examples/longevent/LongEventHandler.java
 
-#include "disruptor/EventHandler.h"
 #include "LongEvent.h"
+#include "disruptor/EventHandler.h"
 
 #include <cstdint>
 #include <iostream>
@@ -17,6 +17,4 @@ public:
   }
 };
 
-} // namespace disruptor_examples::longevent
-
-
+}  // namespace disruptor_examples::longevent

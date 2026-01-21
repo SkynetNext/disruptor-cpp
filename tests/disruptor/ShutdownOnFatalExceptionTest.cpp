@@ -14,18 +14,24 @@ namespace {
 class ByteArrayTranslator final : public disruptor::EventTranslator<std::vector<uint8_t>> {
 public:
   explicit ByteArrayTranslator(std::vector<uint8_t> bytes) : bytes_(std::move(bytes)) {}
-  void translateTo(std::vector<uint8_t>& event, int64_t /*sequence*/) override { event = bytes_; }
+
+  void translateTo(std::vector<uint8_t>& event, int64_t /*sequence*/) override {
+    event = bytes_;
+  }
+
 private:
   std::vector<uint8_t> bytes_;
 };
 
 class FailingEventHandler final : public disruptor::EventHandler<std::vector<uint8_t>> {
 public:
-  void onEvent(std::vector<uint8_t>& /*event*/, int64_t /*sequence*/, bool /*endOfBatch*/) override {
+  void
+  onEvent(std::vector<uint8_t>& /*event*/, int64_t /*sequence*/, bool /*endOfBatch*/) override {
     if (++count_ == 3) {
       throw std::runtime_error("fail");
     }
   }
+
 private:
   int count_{0};
 };
@@ -33,11 +39,15 @@ private:
 class ByteArrayFactory final : public disruptor::EventFactory<std::vector<uint8_t>> {
 public:
   explicit ByteArrayFactory(size_t n) : n_(n) {}
-  std::vector<uint8_t> newInstance() override { return std::vector<uint8_t>(n_); }
+
+  std::vector<uint8_t> newInstance() override {
+    return std::vector<uint8_t>(n_);
+  }
+
 private:
   size_t n_;
 };
-} // namespace
+}  // namespace
 
 TEST(ShutdownOnFatalExceptionTest, shouldShutdownGracefulEvenWithFatalExceptionHandler) {
   std::mt19937 rng(123);
@@ -50,7 +60,7 @@ TEST(ShutdownOnFatalExceptionTest, shouldShutdownGracefulEvenWithFatalExceptionH
   FailingEventHandler handler;
 
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::SINGLE, WS> d(
-      std::make_shared<ByteArrayFactory>(256), 1024, tf, ws);
+    std::make_shared<ByteArrayFactory>(256), 1024, tf, ws);
   d.handleEventsWith(handler);
 
   disruptor::FatalExceptionHandler<std::vector<uint8_t>> fatal;
@@ -59,7 +69,8 @@ TEST(ShutdownOnFatalExceptionTest, shouldShutdownGracefulEvenWithFatalExceptionH
   d.start();
   for (int i = 1; i < 10; ++i) {
     std::vector<uint8_t> bytes(32);
-    for (auto& b : bytes) b = static_cast<uint8_t>(dist(rng));
+    for (auto& b : bytes)
+      b = static_cast<uint8_t>(dist(rng));
     ByteArrayTranslator tr(bytes);
     d.publishEvent(tr);
   }

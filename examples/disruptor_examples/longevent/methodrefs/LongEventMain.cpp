@@ -10,8 +10,8 @@
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 
-#include "../LongEvent.h"
 #include "../ByteBuffer.h"
+#include "../LongEvent.h"
 
 #include <chrono>
 #include <cstdint>
@@ -21,41 +21,55 @@
 
 namespace {
 struct Factory final : public disruptor::EventFactory<disruptor_examples::longevent::LongEvent> {
-  disruptor_examples::longevent::LongEvent newInstance() override { return disruptor_examples::longevent::LongEvent(); }
+  disruptor_examples::longevent::LongEvent newInstance() override {
+    return disruptor_examples::longevent::LongEvent();
+  }
 };
 
-static void handleEvent(disruptor_examples::longevent::LongEvent& event, int64_t /*sequence*/, bool /*endOfBatch*/) {
+static void handleEvent(disruptor_examples::longevent::LongEvent& event,
+                        int64_t /*sequence*/,
+                        bool /*endOfBatch*/) {
   std::cout << event.toString() << "\n";
 }
 
-class Translate final : public disruptor::EventTranslatorOneArg<disruptor_examples::longevent::LongEvent, disruptor_examples::longevent::ByteBuffer> {
+class Translate final
+  : public disruptor::EventTranslatorOneArg<disruptor_examples::longevent::LongEvent,
+                                            disruptor_examples::longevent::ByteBuffer> {
 public:
-  void translateTo(disruptor_examples::longevent::LongEvent& event, int64_t /*sequence*/, disruptor_examples::longevent::ByteBuffer buffer) override {
+  void translateTo(disruptor_examples::longevent::LongEvent& event,
+                   int64_t /*sequence*/,
+                   disruptor_examples::longevent::ByteBuffer buffer) override {
     event.set(buffer.getLong(0));
   }
 };
-} // namespace
+}  // namespace
 
 int main() {
   using WS = disruptor::BlockingWaitStrategy;
-  using D = disruptor::dsl::Disruptor<disruptor_examples::longevent::LongEvent, disruptor::dsl::ProducerType::MULTI, WS>;
+  using D = disruptor::dsl::Disruptor<disruptor_examples::longevent::LongEvent,
+                                      disruptor::dsl::ProducerType::MULTI, WS>;
   constexpr int bufferSize = 1024;
   auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   auto factory = std::make_shared<Factory>();
   WS ws;
   D disruptor(factory, bufferSize, tf, ws);
+
   // No direct method reference equivalent; wrap with a handler.
   class Handler final : public disruptor::EventHandler<disruptor_examples::longevent::LongEvent> {
   public:
-    void onEvent(disruptor_examples::longevent::LongEvent& event, int64_t sequence, bool endOfBatch) override {
+    void onEvent(disruptor_examples::longevent::LongEvent& event,
+                 int64_t sequence,
+                 bool endOfBatch) override {
       handleEvent(event, sequence, endOfBatch);
     }
   } handler;
+
   disruptor.handleEventsWith(handler);
   disruptor.start();
 
   auto& ringBuffer = disruptor.getRingBuffer();
-  disruptor_examples::longevent::ByteBuffer bb = disruptor_examples::longevent::ByteBuffer::allocate(8);
+  disruptor_examples::longevent::ByteBuffer bb =
+    disruptor_examples::longevent::ByteBuffer::allocate(8);
   Translate tr;
 
   for (int64_t l = 0; l < 5; ++l) {
@@ -67,5 +81,3 @@ int main() {
   disruptor.shutdown(2000);
   return 0;
 }
-
-

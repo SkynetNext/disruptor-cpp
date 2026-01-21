@@ -6,7 +6,8 @@
 namespace {
 static constexpr const char* TEST_VALUE = "Wibble";
 
-class ExampleEventTranslator final : public disruptor::EventTranslator<disruptor::support::StubEvent> {
+class ExampleEventTranslator final
+  : public disruptor::EventTranslator<disruptor::support::StubEvent> {
 public:
   explicit ExampleEventTranslator(std::string testValue) : testValue_(std::move(testValue)) {}
 
@@ -17,7 +18,7 @@ public:
 private:
   std::string testValue_;
 };
-} // namespace
+}  // namespace
 
 TEST(EventTranslatorTest, shouldTranslateOtherDataIntoAnEvent) {
   auto event = disruptor::support::StubEvent::EVENT_FACTORY->newInstance();

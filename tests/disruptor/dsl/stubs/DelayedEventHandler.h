@@ -12,17 +12,19 @@
 
 namespace disruptor::dsl::stubs {
 
-class DelayedEventHandler final
-    : public disruptor::EventHandler<disruptor::support::TestEvent> {
+class DelayedEventHandler final : public disruptor::EventHandler<disruptor::support::TestEvent> {
 public:
   DelayedEventHandler() : readyToProcessEvent_(false), stopped_(false) {}
 
-  void onEvent(disruptor::support::TestEvent& /*entry*/, int64_t /*sequence*/,
+  void onEvent(disruptor::support::TestEvent& /*entry*/,
+               int64_t /*sequence*/,
                bool /*endOfBatch*/) override {
     waitForAndSetFlag(false);
   }
 
-  void processEvent() { waitForAndSetFlag(true); }
+  void processEvent() {
+    waitForAndSetFlag(true);
+  }
 
   void stopWaiting() {
     stopped_.store(true);
@@ -44,8 +46,7 @@ public:
 private:
   void waitForAndSetFlag(bool newValue) {
     bool expected = !newValue;
-    while (!stopped_.load() && 
-           !readyToProcessEvent_.compare_exchange_weak(expected, newValue)) {
+    while (!stopped_.load() && !readyToProcessEvent_.compare_exchange_weak(expected, newValue)) {
       expected = !newValue;
       std::this_thread::yield();
     }
@@ -58,5 +59,4 @@ private:
   std::condition_variable cv_;
 };
 
-} // namespace disruptor::dsl::stubs
-
+}  // namespace disruptor::dsl::stubs

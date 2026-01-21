@@ -13,8 +13,13 @@ public:
   T* lastEvent = nullptr;
   int64_t lastSequence = 0;
 
-  void onStart() override { ++startCalls; }
-  void onShutdown() override { ++shutdownCalls; }
+  void onStart() override {
+    ++startCalls;
+  }
+
+  void onShutdown() override {
+    ++shutdownCalls;
+  }
 
   void onEvent(T& event, int64_t sequence, bool /*endOfBatch*/) override {
     lastEvent = &event;
@@ -22,6 +27,4 @@ public:
   }
 };
 
-} // namespace disruptor::support
-
-
+}  // namespace disruptor::support

@@ -3,15 +3,15 @@
 //
 // Java loops forever; C++ port runs a bounded number of iterations.
 
-#include "disruptor/EventTranslatorOneArg.h"
-#include "disruptor/EventHandler.h"
 #include "disruptor/BlockingWaitStrategy.h"
+#include "disruptor/EventHandler.h"
+#include "disruptor/EventTranslatorOneArg.h"
 #include "disruptor/RingBuffer.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 
-#include "../LongEvent.h"
 #include "../ByteBuffer.h"
+#include "../LongEvent.h"
 
 #include <chrono>
 #include <cstdint>
@@ -21,24 +21,32 @@
 
 namespace {
 struct Factory final : public disruptor::EventFactory<disruptor_examples::longevent::LongEvent> {
-  disruptor_examples::longevent::LongEvent newInstance() override { return disruptor_examples::longevent::LongEvent(); }
+  disruptor_examples::longevent::LongEvent newInstance() override {
+    return disruptor_examples::longevent::LongEvent();
+  }
 };
 
-class PrintHandler final : public disruptor::EventHandler<disruptor_examples::longevent::LongEvent> {
+class PrintHandler final
+  : public disruptor::EventHandler<disruptor_examples::longevent::LongEvent> {
 public:
-  void onEvent(disruptor_examples::longevent::LongEvent& event, int64_t /*sequence*/, bool /*endOfBatch*/) override {
+  void onEvent(disruptor_examples::longevent::LongEvent& event,
+               int64_t /*sequence*/,
+               bool /*endOfBatch*/) override {
     std::cout << "Event: " << event.toString() << "\n";
   }
 };
 
 class Translator final
-    : public disruptor::EventTranslatorOneArg<disruptor_examples::longevent::LongEvent, disruptor_examples::longevent::ByteBuffer> {
+  : public disruptor::EventTranslatorOneArg<disruptor_examples::longevent::LongEvent,
+                                            disruptor_examples::longevent::ByteBuffer> {
 public:
-  void translateTo(disruptor_examples::longevent::LongEvent& event, int64_t /*sequence*/, disruptor_examples::longevent::ByteBuffer buffer) override {
+  void translateTo(disruptor_examples::longevent::LongEvent& event,
+                   int64_t /*sequence*/,
+                   disruptor_examples::longevent::ByteBuffer buffer) override {
     event.set(buffer.getLong(0));
   }
 };
-} // namespace
+}  // namespace
 
 int main() {
   constexpr int bufferSize = 1024;
@@ -58,7 +66,8 @@ int main() {
   disruptor.start();
 
   auto& ringBuffer = disruptor.getRingBuffer();
-  disruptor_examples::longevent::ByteBuffer bb = disruptor_examples::longevent::ByteBuffer::allocate(8);
+  disruptor_examples::longevent::ByteBuffer bb =
+    disruptor_examples::longevent::ByteBuffer::allocate(8);
   Translator tr;
 
   for (int64_t l = 0; l < 5; ++l) {
@@ -70,5 +79,3 @@ int main() {
   disruptor.shutdown(2000);
   return 0;
 }
-
-

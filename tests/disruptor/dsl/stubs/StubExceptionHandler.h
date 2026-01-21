@@ -14,10 +14,9 @@ template <typename T>
 class StubExceptionHandler final : public disruptor::ExceptionHandler<T> {
 public:
   explicit StubExceptionHandler(std::atomic<std::exception*>& exceptionHandled)
-      : exceptionHandled_(&exceptionHandled) {}
+    : exceptionHandled_(&exceptionHandled) {}
 
-  void handleEventException(const std::exception& ex, int64_t /*sequence*/,
-                            T* /*event*/) override {
+  void handleEventException(const std::exception& ex, int64_t /*sequence*/, T* /*event*/) override {
     exceptionHandled_->store(const_cast<std::exception*>(&ex));
   }
 
@@ -33,5 +32,4 @@ private:
   std::atomic<std::exception*>* exceptionHandled_;
 };
 
-} // namespace disruptor::dsl::stubs
-
+}  // namespace disruptor::dsl::stubs

@@ -21,11 +21,12 @@ constexpr int kRingBufferSize = 1 << 20;
 // - offer(e, timeout)
 // - poll() (non-blocking)
 //
-// IMPORTANT: Java benchmark repeatedly enqueues the SAME SimpleEvent instance; we mirror by storing pointers.
+// IMPORTANT: Java benchmark repeatedly enqueues the SAME SimpleEvent instance; we mirror by storing
+// pointers.
 class ArrayBlockingQueueLike {
 public:
   explicit ArrayBlockingQueueLike(size_t capacity)
-      : capacity_(capacity), buf_(capacity_, nullptr) {}
+    : capacity_(capacity), buf_(capacity_, nullptr) {}
 
   bool offer(disruptor::bench::jmh::SimpleEvent* e, std::chrono::nanoseconds timeout) {
     std::unique_lock<std::mutex> lk(mu_);
@@ -36,7 +37,8 @@ public:
       if (!cv_not_full_.wait_for(lk, timeout, [&] { return count_ < capacity_ || !running_; })) {
         return false;
       }
-      if (!running_) return false;
+      if (!running_)
+        return false;
     }
     const bool was_empty = (count_ == 0);
     buf_[tail_] = e;
@@ -51,7 +53,8 @@ public:
 
   disruptor::bench::jmh::SimpleEvent* poll() {
     std::lock_guard<std::mutex> lk(mu_);
-    if (count_ == 0) return nullptr;
+    if (count_ == 0)
+      return nullptr;
     const bool was_full = (count_ == capacity_);
     auto* out = buf_[head_];
     buf_[head_] = nullptr;
@@ -84,13 +87,13 @@ private:
   size_t count_{0};
   bool running_{true};
 };
-} // namespace
+}  // namespace
 
 // 1:1 with Java:
 // reference/disruptor/src/jmh/java/com/lmax/disruptor/BlockingQueueBenchmark.java
 static void JMH_BlockingQueueBenchmark_producing(benchmark::State& state) {
   ArrayBlockingQueueLike q(static_cast<size_t>(kRingBufferSize));
-  std::atomic<bool> consumerRunning{true}; // mirrors Java volatile boolean
+  std::atomic<bool> consumerRunning{true};  // mirrors Java volatile boolean
   std::promise<void> started;
   auto started_f = started.get_future();
 
@@ -98,7 +101,8 @@ static void JMH_BlockingQueueBenchmark_producing(benchmark::State& state) {
     started.set_value();
     while (consumerRunning.load(std::memory_order_acquire)) {
       auto* ev = q.poll();
-      if (ev != nullptr) benchmark::DoNotOptimize(ev->value);
+      if (ev != nullptr)
+        benchmark::DoNotOptimize(ev->value);
     }
   });
 
@@ -126,5 +130,3 @@ static auto* bm_JMH_BlockingQueueBenchmark_producing = [] {
                                          &JMH_BlockingQueueBenchmark_producing);
   return disruptor::bench::jmh::applyJmhDefaults(b);
 }();
-
-

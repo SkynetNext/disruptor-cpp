@@ -22,13 +22,14 @@ struct KeyedEvent {
 };
 
 struct KeyedEventFactory final : public disruptor::EventFactory<KeyedEvent> {
-  KeyedEvent newInstance() override { return KeyedEvent(); }
+  KeyedEvent newInstance() override {
+    return KeyedEvent();
+  }
 };
 
 class KeyedBatching final : public disruptor::EventHandler<KeyedEvent> {
 public:
-  void onEvent(KeyedEvent &event, int64_t /*sequence*/,
-               bool endOfBatch) override {
+  void onEvent(KeyedEvent& event, int64_t /*sequence*/, bool endOfBatch) override {
     if (!batch_.empty() && event.key != key_) {
       processBatch();
     }
@@ -52,14 +53,14 @@ private:
   }
 };
 
-} // namespace
+}  // namespace
 
 int main() {
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   auto factory = std::make_shared<KeyedEventFactory>();
   disruptor::dsl::Disruptor<KeyedEvent, disruptor::dsl::ProducerType::MULTI,
                             disruptor::BlockingWaitStrategy>
-      d(factory, 1024, tf);
+    d(factory, 1024, tf);
 
   KeyedBatching handler;
   d.handleEventsWith(handler);
@@ -68,7 +69,7 @@ int main() {
   // Publish some keyed events.
   for (int i = 0; i < 10; ++i) {
     int64_t seq = rb->next();
-    auto &e = rb->get(seq);
+    auto& e = rb->get(seq);
     e.key = i % 2;
     e.data = "item-" + std::to_string(i);
     rb->publish(seq);

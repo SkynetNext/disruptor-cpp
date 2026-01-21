@@ -2,8 +2,8 @@
 // 1:1 port of com.lmax.disruptor.support.DummyWaitStrategy
 // Updated for template-based architecture: no inheritance, just implements the interface
 
-#include "disruptor/Sequence.h"
 #include "DummySequenceBarrier.h"
+#include "disruptor/Sequence.h"
 
 #include <cstdint>
 
@@ -13,7 +13,7 @@ namespace disruptor::support {
 class DummyWaitStrategy final {
 public:
   static constexpr bool kIsBlockingStrategy = true;
-  
+
   int signalAllWhenBlockingCalls = 0;
 
   template <typename BarrierT>
@@ -24,10 +24,13 @@ public:
     return 0;
   }
 
-  void signalAllWhenBlocking() { ++signalAllWhenBlockingCalls; }
-  bool isBlockingStrategy() const noexcept { return true; }
+  void signalAllWhenBlocking() {
+    ++signalAllWhenBlockingCalls;
+  }
+
+  bool isBlockingStrategy() const noexcept {
+    return true;
+  }
 };
 
-} // namespace disruptor::support
-
-
+}  // namespace disruptor::support

@@ -8,8 +8,8 @@
 #include <vector>
 
 #if defined(__linux__)
-#include <sys/uio.h>
-#include "tbus.h" // reference/tsf4g/tbus/include/tbus.h (wired via CMake on Linux)
+#  include <sys/uio.h>
+#  include "tbus.h"  // reference/tsf4g/tbus/include/tbus.h (wired via CMake on Linux)
 #endif
 
 static void JMH_TBusSingleProducerSingleConsumer_producing(benchmark::State& state) {
@@ -68,5 +68,3 @@ static auto* bm_JMH_TBusSingleProducerSingleConsumer_producing = [] {
                                          &JMH_TBusSingleProducerSingleConsumer_producing);
   return disruptor::bench::jmh::applyJmhDefaults(b);
 }();
-
-

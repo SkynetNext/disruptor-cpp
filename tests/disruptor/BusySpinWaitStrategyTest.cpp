@@ -5,5 +5,6 @@
 
 TEST(BusySpinWaitStrategyTest, shouldWaitForValue) {
   disruptor::BusySpinWaitStrategy waitStrategy;
-  EXPECT_NO_THROW(disruptor::support::WaitStrategyTestUtil::assertWaitForWithDelayOf(50, waitStrategy));
+  EXPECT_NO_THROW(
+    disruptor::support::WaitStrategyTestUtil::assertWaitForWithDelayOf(50, waitStrategy));
 }

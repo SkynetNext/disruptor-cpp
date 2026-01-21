@@ -23,23 +23,25 @@ constexpr int kMpThreads = 4;
 using DisruptorType = disruptor::dsl::Disruptor<disruptor::bench::jmh::SimpleEvent,
                                                 disruptor::dsl::ProducerType::MULTI,
                                                 disruptor::BusySpinWaitStrategy>;
-using RingBufferType = disruptor::RingBuffer<disruptor::bench::jmh::SimpleEvent,
-                                              disruptor::MultiProducerSequencer<disruptor::BusySpinWaitStrategy>>;
+using RingBufferType =
+  disruptor::RingBuffer<disruptor::bench::jmh::SimpleEvent,
+                        disruptor::MultiProducerSequencer<disruptor::BusySpinWaitStrategy>>;
 
 // Static instance shared across all threads (Java: @State(Scope.Benchmark))
 static std::mutex g_init_mutex;
 static DisruptorType* g_disruptor = nullptr;
 static std::shared_ptr<RingBufferType> g_ringBuffer = nullptr;
 static std::atomic<bool> g_initialized{false};
-static disruptor::bench::jmh::ConsumeHandler* g_handler = nullptr; // Keep handler alive
+static disruptor::bench::jmh::ConsumeHandler* g_handler = nullptr;  // Keep handler alive
 
-} // namespace
+}  // namespace
 
 // Setup function (1:1 with Java @Setup)
 // Java: @Setup - creates Disruptor with consumer (called once per benchmark)
 static void Setup_MPSC_producing(const benchmark::State& state) {
-  if (state.thread_index() != 0) return; // Only thread 0 does setup
-  
+  if (state.thread_index() != 0)
+    return;  // Only thread 0 does setup
+
   std::lock_guard<std::mutex> lock(g_init_mutex);
   if (!g_initialized.load(std::memory_order_relaxed)) {
     try {
@@ -57,7 +59,7 @@ static void Setup_MPSC_producing(const benchmark::State& state) {
 
       // Start consumer thread (1:1 with Java: ringBuffer = disruptor.start())
       g_ringBuffer = g_disruptor->start();
-      
+
       g_initialized.store(true, std::memory_order_release);
     } catch (const std::exception& e) {
       // Setup errors are hard to report, but will be caught in benchmark body
@@ -69,22 +71,23 @@ static void Setup_MPSC_producing(const benchmark::State& state) {
 // Teardown function (1:1 with Java @TearDown)
 // Java: @TearDown - disruptor.shutdown() (called once per benchmark)
 static void Teardown_MPSC_producing(const benchmark::State& state) {
-  if (state.thread_index() != 0) return; // Only thread 0 does teardown
-  
+  if (state.thread_index() != 0)
+    return;  // Only thread 0 does teardown
+
   // Use try_lock to avoid blocking if another thread is in Setup
   std::unique_lock<std::mutex> lock(g_init_mutex, std::try_to_lock);
   if (!lock.owns_lock()) {
     // Another thread is in Setup, skip teardown (will be cleaned up later)
     return;
   }
-  
+
   if (g_initialized.load(std::memory_order_relaxed) && g_disruptor != nullptr) {
     try {
       // Java: disruptor.shutdown() - waits for backlog to drain, then halts and joins threads
       // In benchmark context, measurement is already done, so we don't need to wait for backlog.
       // We use halt() directly to avoid blocking. This matches Java's behavior in practice since
       // JMH benchmarks typically don't have significant backlog at teardown time.
-      g_disruptor->halt(); // halt() stops processors and joins threads, no backlog wait
+      g_disruptor->halt();  // halt() stops processors and joins threads, no backlog wait
       delete g_disruptor;
       g_disruptor = nullptr;
       delete g_handler;
@@ -126,7 +129,7 @@ static void JMH_MultiProducerSingleConsumer_producing(benchmark::State& state) {
     e.value = 0;
     g_ringBuffer->publish(sequence);
   }
-  
+
   // Set items processed to enable accurate throughput calculation
   // Google Benchmark will calculate throughput from iterations, not from time
   // This matches Java JMH Mode.Throughput which measures ops/time directly
@@ -137,7 +140,7 @@ static auto* bm_JMH_MultiProducerSingleConsumer_producing = [] {
   auto* b = benchmark::RegisterBenchmark("JMH_MultiProducerSingleConsumer_producing",
                                          &JMH_MultiProducerSingleConsumer_producing);
   b->Threads(kMpThreads);
-  b->Setup(Setup_MPSC_producing);  // 1:1 with Java @Setup
+  b->Setup(Setup_MPSC_producing);        // 1:1 with Java @Setup
   b->Teardown(Teardown_MPSC_producing);  // 1:1 with Java @TearDown
   return disruptor::bench::jmh::applyJmhDefaults(b);
 }();
@@ -147,12 +150,13 @@ static std::mutex g_batch_init_mutex;
 static DisruptorType* g_batch_disruptor = nullptr;
 static std::shared_ptr<RingBufferType> g_batch_ringBuffer = nullptr;
 static std::atomic<bool> g_batch_initialized{false};
-static disruptor::bench::jmh::ConsumeHandler* g_batch_handler = nullptr; // Keep handler alive
+static disruptor::bench::jmh::ConsumeHandler* g_batch_handler = nullptr;  // Keep handler alive
 
 // Setup function for batch (1:1 with Java @Setup)
 static void Setup_MPSC_producingBatch(const benchmark::State& state) {
-  if (state.thread_index() != 0) return; // Only thread 0 does setup
-  
+  if (state.thread_index() != 0)
+    return;  // Only thread 0 does setup
+
   std::lock_guard<std::mutex> lock(g_batch_init_mutex);
   if (!g_batch_initialized.load(std::memory_order_relaxed)) {
     try {
@@ -170,7 +174,7 @@ static void Setup_MPSC_producingBatch(const benchmark::State& state) {
 
       // Start consumer thread (1:1 with Java: ringBuffer = disruptor.start())
       g_batch_ringBuffer = g_batch_disruptor->start();
-      
+
       g_batch_initialized.store(true, std::memory_order_release);
     } catch (const std::exception& e) {
       g_batch_initialized.store(false, std::memory_order_release);
@@ -180,22 +184,23 @@ static void Setup_MPSC_producingBatch(const benchmark::State& state) {
 
 // Teardown function for batch (1:1 with Java @TearDown)
 static void Teardown_MPSC_producingBatch(const benchmark::State& state) {
-  if (state.thread_index() != 0) return; // Only thread 0 does teardown
-  
+  if (state.thread_index() != 0)
+    return;  // Only thread 0 does teardown
+
   // Use try_lock to avoid blocking if another thread is in Setup
   std::unique_lock<std::mutex> lock(g_batch_init_mutex, std::try_to_lock);
   if (!lock.owns_lock()) {
     // Another thread is in Setup, skip teardown (will be cleaned up later)
     return;
   }
-  
+
   if (g_batch_initialized.load(std::memory_order_relaxed) && g_batch_disruptor != nullptr) {
     try {
       // Java: disruptor.shutdown() - waits for backlog to drain, then halts and joins threads
       // In benchmark context, measurement is already done, so we don't need to wait for backlog.
       // We use halt() directly to avoid blocking. This matches Java's behavior in practice since
       // JMH benchmarks typically don't have significant backlog at teardown time.
-      g_batch_disruptor->halt(); // halt() stops processors and joins threads, no backlog wait
+      g_batch_disruptor->halt();  // halt() stops processors and joins threads, no backlog wait
       delete g_batch_disruptor;
       g_batch_disruptor = nullptr;
       delete g_batch_handler;
@@ -243,9 +248,7 @@ static auto* bm_JMH_MultiProducerSingleConsumer_producingBatch = [] {
   auto* b = benchmark::RegisterBenchmark("JMH_MultiProducerSingleConsumer_producingBatch",
                                          &JMH_MultiProducerSingleConsumer_producingBatch);
   b->Threads(kMpThreads);
-  b->Setup(Setup_MPSC_producingBatch);  // 1:1 with Java @Setup
+  b->Setup(Setup_MPSC_producingBatch);        // 1:1 with Java @Setup
   b->Teardown(Teardown_MPSC_producingBatch);  // 1:1 with Java @TearDown
   return disruptor::bench::jmh::applyJmhDefaults(b);
 }();
-
-

@@ -34,33 +34,31 @@
 #include <vector>
 
 namespace {
-class LatchHandler final
-    : public disruptor::EventHandler<disruptor::support::TestEvent> {
+class LatchHandler final : public disruptor::EventHandler<disruptor::support::TestEvent> {
 public:
-  explicit LatchHandler(disruptor::test_support::CountDownLatch &latch)
-      : latch_(&latch) {}
-  void onEvent(disruptor::support::TestEvent & /*event*/, int64_t /*sequence*/,
+  explicit LatchHandler(disruptor::test_support::CountDownLatch& latch) : latch_(&latch) {}
+
+  void onEvent(disruptor::support::TestEvent& /*event*/,
+               int64_t /*sequence*/,
                bool /*endOfBatch*/) override {
     latch_->countDown();
   }
 
 private:
-  disruptor::test_support::CountDownLatch *latch_;
+  disruptor::test_support::CountDownLatch* latch_;
 };
 
-class NoOpTranslator final
-    : public disruptor::EventTranslator<disruptor::support::TestEvent> {
+class NoOpTranslator final : public disruptor::EventTranslator<disruptor::support::TestEvent> {
 public:
-  void translateTo(disruptor::support::TestEvent & /*event*/,
-                   int64_t /*sequence*/) override {}
+  void translateTo(disruptor::support::TestEvent& /*event*/, int64_t /*sequence*/) override {}
 };
 
 class NoOpTranslatorOneArg final
-    : public disruptor::EventTranslatorOneArg<disruptor::support::TestEvent,
-                                              std::string> {
+  : public disruptor::EventTranslatorOneArg<disruptor::support::TestEvent, std::string> {
 public:
-  void translateTo(disruptor::support::TestEvent & /*event*/,
-                   int64_t /*sequence*/, std::string /*arg0*/) override {}
+  void translateTo(disruptor::support::TestEvent& /*event*/,
+                   int64_t /*sequence*/,
+                   std::string /*arg0*/) override {}
 };
 
 // Test helper class to align with Java DisruptorTest class behavior
@@ -68,26 +66,24 @@ public:
 // new ArrayList<>(); Java: private RingBuffer<TestEvent> ringBuffer;
 class DisruptorTestHelper {
 public:
-  using DisruptorT =
-      disruptor::dsl::Disruptor<disruptor::support::TestEvent,
-                                disruptor::dsl::ProducerType::MULTI,
-                                disruptor::BlockingWaitStrategy>;
+  using DisruptorT = disruptor::dsl::Disruptor<disruptor::support::TestEvent,
+                                               disruptor::dsl::ProducerType::MULTI,
+                                               disruptor::BlockingWaitStrategy>;
 
   // Java: createDelayedEventHandler() adds to delayedEventHandlers collection
-  disruptor::dsl::stubs::DelayedEventHandler &createDelayedEventHandler() {
-    delayedEventHandlers_.push_back(
-        std::make_unique<disruptor::dsl::stubs::DelayedEventHandler>());
+  disruptor::dsl::stubs::DelayedEventHandler& createDelayedEventHandler() {
+    delayedEventHandlers_.push_back(std::make_unique<disruptor::dsl::stubs::DelayedEventHandler>());
     return *delayedEventHandlers_.back();
   }
 
   // Java: private void publishEvent() - auto-starts and waits for all
   // DelayedEventHandlers
-  void publishEvent(DisruptorT &d) {
+  void publishEvent(DisruptorT& d) {
     if (ringBuffer_ == nullptr) {
       ringBuffer_ = d.start();
       // Wait for all DelayedEventHandlers to start (Java: awaitStart() for all
       // in delayedEventHandlers collection)
-      for (auto &handler : delayedEventHandlers_) {
+      for (auto& handler : delayedEventHandlers_) {
         handler->awaitStart();
       }
     }
@@ -98,14 +94,15 @@ public:
   // Java: ensureTwoEventsProcessedAccordingToDependencies calls publishEvent()
   // twice
   void ensureTwoEventsProcessedAccordingToDependencies(
-      DisruptorT &d, disruptor::test_support::CountDownLatch &countDownLatch,
-      std::vector<disruptor::dsl::stubs::DelayedEventHandler *> &dependencies) {
-    publishEvent(d); // First event - auto-starts if needed
-    publishEvent(d); // Second event
+    DisruptorT& d,
+    disruptor::test_support::CountDownLatch& countDownLatch,
+    std::vector<disruptor::dsl::stubs::DelayedEventHandler*>& dependencies) {
+    publishEvent(d);  // First event - auto-starts if needed
+    publishEvent(d);  // Second event
 
     // Java: assertThatCountDownLatchEquals(countDownLatch, 2L) before
     // processing dependencies
-    for (auto *dependency : dependencies) {
+    for (auto* dependency : dependencies) {
       EXPECT_EQ(2, countDownLatch.getCount());
       dependency->processEvent();
       dependency->processEvent();
@@ -117,18 +114,17 @@ public:
 
   // Java: @AfterEach tearDown() - stop all DelayedEventHandlers
   void tearDown() {
-    for (auto &handler : delayedEventHandlers_) {
+    for (auto& handler : delayedEventHandlers_) {
       handler->stopWaiting();
     }
   }
 
 private:
-  std::vector<std::unique_ptr<disruptor::dsl::stubs::DelayedEventHandler>>
-      delayedEventHandlers_;
-  std::shared_ptr<disruptor::RingBuffer<
-      disruptor::support::TestEvent,
-      disruptor::MultiProducerSequencer<disruptor::BlockingWaitStrategy>>>
-      ringBuffer_;
+  std::vector<std::unique_ptr<disruptor::dsl::stubs::DelayedEventHandler>> delayedEventHandlers_;
+  std::shared_ptr<
+    disruptor::RingBuffer<disruptor::support::TestEvent,
+                          disruptor::MultiProducerSequencer<disruptor::BlockingWaitStrategy>>>
+    ringBuffer_;
 };
 
 // Helper function - fully aligned with Java version
@@ -136,21 +132,20 @@ private:
 // dependencies...) Must use DisruptorTestHelper to track all
 // DelayedEventHandlers like Java version does
 void ensureTwoEventsProcessedAccordingToDependencies(
-    DisruptorTestHelper &helper,
-    disruptor::dsl::Disruptor<disruptor::support::TestEvent,
-                              disruptor::dsl::ProducerType::MULTI,
-                              disruptor::BlockingWaitStrategy> &d,
-    disruptor::test_support::CountDownLatch &countDownLatch,
-    std::vector<disruptor::dsl::stubs::DelayedEventHandler *> &dependencies) {
+  DisruptorTestHelper& helper,
+  disruptor::dsl::Disruptor<disruptor::support::TestEvent,
+                            disruptor::dsl::ProducerType::MULTI,
+                            disruptor::BlockingWaitStrategy>& d,
+  disruptor::test_support::CountDownLatch& countDownLatch,
+  std::vector<disruptor::dsl::stubs::DelayedEventHandler*>& dependencies) {
   // Java: ensureTwoEventsProcessedAccordingToDependencies calls publishEvent()
   // twice publishEvent() auto-starts disruptor and waits for all
   // DelayedEventHandlers in the collection
-  helper.ensureTwoEventsProcessedAccordingToDependencies(d, countDownLatch,
-                                                         dependencies);
+  helper.ensureTwoEventsProcessedAccordingToDependencies(d, countDownLatch, dependencies);
 }
 
 // Helper to wait for exception
-std::exception *waitFor(std::atomic<std::exception *> &reference) {
+std::exception* waitFor(std::atomic<std::exception*>& reference) {
   while (reference.load() == nullptr) {
     std::this_thread::yield();
   }
@@ -159,13 +154,12 @@ std::exception *waitFor(std::atomic<std::exception *> &reference) {
 
 // Helper to assert producer reaches count
 template <typename SequencerT>
-void assertProducerReaches(
-    disruptor::dsl::stubs::StubPublisher<SequencerT> &stubPublisher,
-    int expectedPublicationCount, bool strict) {
+void assertProducerReaches(disruptor::dsl::stubs::StubPublisher<SequencerT>& stubPublisher,
+                           int expectedPublicationCount,
+                           bool strict) {
   auto loopStart = std::chrono::steady_clock::now();
-  while (stubPublisher.getPublicationCount() < expectedPublicationCount &&
-         std::chrono::steady_clock::now() - loopStart <
-             std::chrono::seconds(5)) {
+  while (stubPublisher.getPublicationCount() < expectedPublicationCount
+         && std::chrono::steady_clock::now() - loopStart < std::chrono::seconds(5)) {
     std::this_thread::yield();
   }
 
@@ -174,20 +168,19 @@ void assertProducerReaches(
   } else {
     int actualPublicationCount = stubPublisher.getPublicationCount();
     EXPECT_GE(actualPublicationCount, expectedPublicationCount)
-        << "Producer reached unexpected count. Expected at least "
-        << expectedPublicationCount << " but only reached "
-        << actualPublicationCount;
+      << "Producer reached unexpected count. Expected at least " << expectedPublicationCount
+      << " but only reached " << actualPublicationCount;
   }
 }
-} // namespace
+}  // namespace
 
 TEST(DisruptorTest, shouldHaveStartedAfterStartCalled) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
   EXPECT_FALSE(d.hasStarted());
   d.start();
@@ -199,19 +192,19 @@ TEST(DisruptorTest, shouldHaveStartedAfterStartCalled) {
 TEST(DisruptorTest, shouldProcessMessagesPublishedBeforeStartIsCalled) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
   disruptor::test_support::CountDownLatch latch(2);
   LatchHandler handler(latch);
   d.handleEventsWith(handler);
 
   NoOpTranslator translator;
-  d.publishEvent(translator); // before start
+  d.publishEvent(translator);  // before start
   d.start();
-  d.publishEvent(translator); // after start
+  d.publishEvent(translator);  // after start
 
   latch.await();
   d.halt();
@@ -222,20 +215,19 @@ TEST(DisruptorTest, shouldSupportMultipleCustomProcessorsAsDependencies) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
   using DisruptorT = disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS>;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
-  
+
   // All handlers must be declared before anything that references them
   disruptor::test_support::CountDownLatch countDownLatch(2);
   disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(countDownLatch);
   disruptor::dsl::stubs::DelayedEventHandler delayedEventHandler1;
   disruptor::dsl::stubs::DelayedEventHandler delayedEventHandler2;
-  
-  // Use unique_ptr to explicitly control destruction order
-  auto d = std::make_unique<DisruptorT>(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
-  auto &ringBuffer = d->getRingBuffer();
+  // Use unique_ptr to explicitly control destruction order
+  auto d = std::make_unique<DisruptorT>(disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+
+  auto& ringBuffer = d->getRingBuffer();
 
   disruptor::BatchEventProcessorBuilder builder1;
   auto barrier1 = ringBuffer.newBarrier();
@@ -246,10 +238,8 @@ TEST(DisruptorTest, shouldSupportMultipleCustomProcessorsAsDependencies) {
   auto processor2 = builder2.build(ringBuffer, *barrier2, delayedEventHandler2);
 
   // Keep processors alive for the lifetime of the test
-  std::vector<std::shared_ptr<disruptor::EventProcessor>> keptProcessors = {
-      processor1, processor2};
-  disruptor::EventProcessor *processors[] = {processor1.get(),
-                                             processor2.get()};
+  std::vector<std::shared_ptr<disruptor::EventProcessor>> keptProcessors = {processor1, processor2};
+  disruptor::EventProcessor* processors[] = {processor1.get(), processor2.get()};
   d->handleEventsWith(processors, 2);
   d->after(processors, 2).handleEventsWith(handlerWithBarrier);
 
@@ -272,35 +262,34 @@ TEST(DisruptorTest, shouldSupportMultipleCustomProcessorsAsDependencies) {
   delayedEventHandler2.stopWaiting();
   d->halt();
   d->join();
-  
+
   // ⚠️ CRITICAL: Destroy Disruptor BEFORE processors/barriers go out of scope
   // Disruptor's ConsumerRepository holds raw pointers to processors
   d.reset();
 }
 
-TEST(DisruptorTest,
-     shouldMakeEntriesAvailableToFirstCustomProcessorsImmediately) {
+TEST(DisruptorTest, shouldMakeEntriesAvailableToFirstCustomProcessorsImmediately) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   disruptor::test_support::CountDownLatch countDownLatch(2);
   disruptor::dsl::stubs::EventHandlerStub<Event> eventHandler(countDownLatch);
 
   using RingBufferT = std::remove_reference_t<decltype(d.getRingBuffer())>;
+
   class TestEventProcessorFactory
-      : public disruptor::dsl::EventProcessorFactory<Event, RingBufferT> {
+    : public disruptor::dsl::EventProcessorFactory<Event, RingBufferT> {
   public:
-    explicit TestEventProcessorFactory(
-        disruptor::dsl::stubs::EventHandlerStub<Event> &handler)
-        : handler_(&handler) {}
+    explicit TestEventProcessorFactory(disruptor::dsl::stubs::EventHandlerStub<Event>& handler)
+      : handler_(&handler) {}
 
     std::shared_ptr<disruptor::EventProcessor>
-    createEventProcessor(RingBufferT &ringBuffer,
-                         disruptor::Sequence *const *barrierSequences,
+    createEventProcessor(RingBufferT& ringBuffer,
+                         disruptor::Sequence* const* barrierSequences,
                          int count) override {
       EXPECT_EQ(0, count) << "Should not have had any barrier sequences";
       disruptor::BatchEventProcessorBuilder builder;
@@ -310,8 +299,8 @@ TEST(DisruptorTest,
     }
 
   private:
-    disruptor::dsl::stubs::EventHandlerStub<Event> *handler_;
-    decltype(std::declval<RingBufferT &>().newBarrier(nullptr, 0)) barrier_;
+    disruptor::dsl::stubs::EventHandlerStub<Event>* handler_;
+    decltype(std::declval<RingBufferT&>().newBarrier(nullptr, 0)) barrier_;
   };
 
   // Keep factory alive for the lifetime of the test
@@ -333,26 +322,26 @@ TEST(DisruptorTest,
 TEST(DisruptorTest, shouldHonourDependenciesForCustomProcessors) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   disruptor::test_support::CountDownLatch countDownLatch(2);
   disruptor::dsl::stubs::EventHandlerStub<Event> eventHandler(countDownLatch);
   disruptor::dsl::stubs::DelayedEventHandler delayedEventHandler;
 
   using RingBufferT2 = std::remove_reference_t<decltype(d.getRingBuffer())>;
+
   class TestEventProcessorFactory2
-      : public disruptor::dsl::EventProcessorFactory<Event, RingBufferT2> {
+    : public disruptor::dsl::EventProcessorFactory<Event, RingBufferT2> {
   public:
-    explicit TestEventProcessorFactory2(
-        disruptor::dsl::stubs::EventHandlerStub<Event> &handler)
-        : handler_(&handler) {}
+    explicit TestEventProcessorFactory2(disruptor::dsl::stubs::EventHandlerStub<Event>& handler)
+      : handler_(&handler) {}
 
     std::shared_ptr<disruptor::EventProcessor>
-    createEventProcessor(RingBufferT2 &ringBuffer,
-                         disruptor::Sequence *const *barrierSequences,
+    createEventProcessor(RingBufferT2& ringBuffer,
+                         disruptor::Sequence* const* barrierSequences,
                          int count) override {
       EXPECT_EQ(1, count) << "Should have had a barrier sequence";
       disruptor::BatchEventProcessorBuilder builder;
@@ -362,24 +351,22 @@ TEST(DisruptorTest, shouldHonourDependenciesForCustomProcessors) {
     }
 
   private:
-    disruptor::dsl::stubs::EventHandlerStub<Event> *handler_;
-    decltype(std::declval<RingBufferT2 &>().newBarrier(nullptr, 0)) barrier_;
+    disruptor::dsl::stubs::EventHandlerStub<Event>* handler_;
+    decltype(std::declval<RingBufferT2&>().newBarrier(nullptr, 0)) barrier_;
   };
 
   // Keep factory alive for the lifetime of the test
   TestEventProcessorFactory2 eventProcessorFactory(eventHandler);
 
   DisruptorTestHelper helper;
-  auto &delayedEventHandlerFromHelper = helper.createDelayedEventHandler();
-  d.handleEventsWith(delayedEventHandlerFromHelper)
-      .thenFactories(eventProcessorFactory);
+  auto& delayedEventHandlerFromHelper = helper.createDelayedEventHandler();
+  d.handleEventsWith(delayedEventHandlerFromHelper).thenFactories(eventProcessorFactory);
 
   // Java: ensureTwoEventsProcessedAccordingToDependencies(countDownLatch,
   // delayedEventHandler)
-  std::vector<disruptor::dsl::stubs::DelayedEventHandler *> deps;
+  std::vector<disruptor::dsl::stubs::DelayedEventHandler*> deps;
   deps.push_back(&delayedEventHandlerFromHelper);
-  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch,
-                                                  deps);
+  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch, deps);
 
   helper.tearDown();
   d.halt();
@@ -389,10 +376,10 @@ TEST(DisruptorTest, shouldHonourDependenciesForCustomProcessors) {
 TEST(DisruptorTest, shouldBatchOfEvents) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
   disruptor::test_support::CountDownLatch eventCounter(2);
   LatchHandler handler(eventCounter);
@@ -412,25 +399,24 @@ TEST(DisruptorTest, shouldBatchOfEvents) {
 TEST(DisruptorTest, shouldHandleEventsWithRewindableEventHandlers) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
   disruptor::test_support::CountDownLatch eventCounter(2);
-  class TestRewindableEventHandler final
-      : public disruptor::RewindableEventHandler<Event> {
+
+  class TestRewindableEventHandler final : public disruptor::RewindableEventHandler<Event> {
   public:
-    explicit TestRewindableEventHandler(
-        disruptor::test_support::CountDownLatch &latch)
-        : latch_(&latch) {}
-    void onEvent(Event & /*event*/, int64_t /*sequence*/,
-                 bool /*endOfBatch*/) override {
+    explicit TestRewindableEventHandler(disruptor::test_support::CountDownLatch& latch)
+      : latch_(&latch) {}
+
+    void onEvent(Event& /*event*/, int64_t /*sequence*/, bool /*endOfBatch*/) override {
       latch_->countDown();
     }
 
   private:
-    disruptor::test_support::CountDownLatch *latch_;
+    disruptor::test_support::CountDownLatch* latch_;
   };
 
   // Note: C++ version doesn't have handleEventsWith(BatchRewindStrategy,
@@ -453,26 +439,25 @@ TEST(DisruptorTest, shouldHandleEventsWithRewindableEventHandlers) {
 TEST(DisruptorTest, shouldMakeEntriesAvailableToFirstHandlersImmediately) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   DisruptorTestHelper helper;
   disruptor::test_support::CountDownLatch countDownLatch(2);
   disruptor::dsl::stubs::EventHandlerStub<Event> eventHandler(countDownLatch);
-  auto &delayedEventHandler =
-      helper.createDelayedEventHandler(); // Java: createDelayedEventHandler()
+  auto& delayedEventHandler =
+    helper.createDelayedEventHandler();  // Java: createDelayedEventHandler()
 
   d.handleEventsWith(delayedEventHandler, eventHandler);
 
   // Java: ensureTwoEventsProcessedAccordingToDependencies(countDownLatch) - no dependencies
   // The EventHandlerStub processes events in parallel with DelayedEventHandler
-  std::vector<disruptor::dsl::stubs::DelayedEventHandler *> noDeps;
-  helper.ensureTwoEventsProcessedAccordingToDependencies(d, countDownLatch,
-                                                         noDeps);
+  std::vector<disruptor::dsl::stubs::DelayedEventHandler*> noDeps;
+  helper.ensureTwoEventsProcessedAccordingToDependencies(d, countDownLatch, noDeps);
 
-  helper.tearDown(); // Java: @AfterEach tearDown()
+  helper.tearDown();  // Java: @AfterEach tearDown()
   d.halt();
   d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
@@ -481,28 +466,27 @@ TEST(DisruptorTest, shouldAddEventProcessorsAfterPublishing) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
   using DisruptorT = disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS>;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
-  
+
   // Handlers must be declared before Disruptor
   disruptor::dsl::stubs::SleepingEventHandler handler1;
   disruptor::dsl::stubs::SleepingEventHandler handler2;
   disruptor::dsl::stubs::SleepingEventHandler handler3;
-  
-  auto d = std::make_unique<DisruptorT>(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
-  auto &ringBuffer = d->getRingBuffer();
+  auto d = std::make_unique<DisruptorT>(disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+
+  auto& ringBuffer = d->getRingBuffer();
   disruptor::BatchEventProcessorBuilder builder1;
   auto barrier1 = ringBuffer.newBarrier();
   auto b1 = builder1.build(ringBuffer, *barrier1, handler1);
 
-  disruptor::Sequence *seqs1[] = {&b1->getSequence()};
+  disruptor::Sequence* seqs1[] = {&b1->getSequence()};
   auto barrier2 = ringBuffer.newBarrier(seqs1, 1);
   disruptor::BatchEventProcessorBuilder builder2;
   auto b2 = builder2.build(ringBuffer, *barrier2, handler2);
 
-  disruptor::Sequence *seqs2[] = {&b2->getSequence()};
+  disruptor::Sequence* seqs2[] = {&b2->getSequence()};
   auto barrier3 = ringBuffer.newBarrier(seqs2, 1);
   disruptor::BatchEventProcessorBuilder builder3;
   auto b3 = builder3.build(ringBuffer, *barrier3, handler3);
@@ -519,9 +503,8 @@ TEST(DisruptorTest, shouldAddEventProcessorsAfterPublishing) {
   ringBuffer.publish(ringBuffer.next());
 
   // Keep processors alive for the lifetime of the test
-  std::vector<std::shared_ptr<disruptor::EventProcessor>> keptProcessors = {
-      b1, b2, b3};
-  disruptor::EventProcessor *processors[] = {b1.get(), b2.get(), b3.get()};
+  std::vector<std::shared_ptr<disruptor::EventProcessor>> keptProcessors = {b1, b2, b3};
+  disruptor::EventProcessor* processors[] = {b1.get(), b2.get(), b3.get()};
   d->handleEventsWith(processors, 3);
 
   EXPECT_EQ(5, b1->getSequence().get());
@@ -536,12 +519,12 @@ TEST(DisruptorTest, shouldAddEventProcessorsAfterPublishing) {
 TEST(DisruptorTest, shouldSetSequenceForHandlerIfAddedAfterPublish) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
-  auto &ringBuffer = d.getRingBuffer();
+  auto& ringBuffer = d.getRingBuffer();
   disruptor::dsl::stubs::SleepingEventHandler b1;
   disruptor::dsl::stubs::SleepingEventHandler b2;
   disruptor::dsl::stubs::SleepingEventHandler b3;
@@ -566,12 +549,12 @@ TEST(DisruptorTest, shouldSetSequenceForHandlerIfAddedAfterPublish) {
 TEST(DisruptorTest, shouldGetSequenceBarrierForHandler) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
-  auto &ringBuffer = d.getRingBuffer();
+  auto& ringBuffer = d.getRingBuffer();
   disruptor::support::DummyEventHandler<Event> handler;
 
   d.handleEventsWith(handler);
@@ -594,12 +577,12 @@ TEST(DisruptorTest, shouldGetSequenceBarrierForHandler) {
 TEST(DisruptorTest, shouldGetSequenceBarrierForHandlerIfAddedAfterPublish) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
-  auto &ringBuffer = d.getRingBuffer();
+  auto& ringBuffer = d.getRingBuffer();
   disruptor::support::DummyEventHandler<Event> handler;
 
   ringBuffer.publish(ringBuffer.next());
@@ -622,10 +605,10 @@ TEST(DisruptorTest, shouldGetSequenceBarrierForHandlerIfAddedAfterPublish) {
 TEST(DisruptorTest, shouldCreateEventProcessorGroupForFirstEventProcessors) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
   disruptor::dsl::stubs::SleepingEventHandler eventHandler1;
   disruptor::dsl::stubs::SleepingEventHandler eventHandler2;
@@ -640,26 +623,25 @@ TEST(DisruptorTest, shouldCreateEventProcessorGroupForFirstEventProcessors) {
 }
 
 TEST(
-    DisruptorTest,
-    shouldWaitUntilAllFirstEventProcessorsProcessEventBeforeMakingItAvailableToDependentEventProcessors) {
+  DisruptorTest,
+  shouldWaitUntilAllFirstEventProcessorsProcessEventBeforeMakingItAvailableToDependentEventProcessors) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   DisruptorTestHelper helper;
-  auto &eventHandler1 = helper.createDelayedEventHandler();
+  auto& eventHandler1 = helper.createDelayedEventHandler();
   disruptor::test_support::CountDownLatch countDownLatch(2);
   disruptor::dsl::stubs::EventHandlerStub<Event> eventHandler2(countDownLatch);
 
   d.handleEventsWith(eventHandler1).then(eventHandler2);
 
-  std::vector<disruptor::dsl::stubs::DelayedEventHandler *> deps;
+  std::vector<disruptor::dsl::stubs::DelayedEventHandler*> deps;
   deps.push_back(&eventHandler1);
-  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch,
-                                                  deps);
+  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch, deps);
 
   helper.tearDown();
   d.halt();
@@ -669,28 +651,28 @@ TEST(
 TEST(DisruptorTest, shouldSupportAddingCustomEventProcessorWithFactory) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
-  auto &ringBuffer = d.getRingBuffer();
+  auto& ringBuffer = d.getRingBuffer();
   disruptor::dsl::stubs::SleepingEventHandler handler1;
   disruptor::BatchEventProcessorBuilder builder1;
   auto barrier1 = ringBuffer.newBarrier();
   auto b1 = builder1.build(ringBuffer, *barrier1, handler1);
 
   using RingBufferT = std::remove_reference_t<decltype(d.getRingBuffer())>;
+
   class TestEventProcessorFactory
-      : public disruptor::dsl::EventProcessorFactory<Event, RingBufferT> {
+    : public disruptor::dsl::EventProcessorFactory<Event, RingBufferT> {
   public:
-    explicit TestEventProcessorFactory(
-        disruptor::dsl::stubs::SleepingEventHandler &handler)
-        : handler_(&handler) {}
+    explicit TestEventProcessorFactory(disruptor::dsl::stubs::SleepingEventHandler& handler)
+      : handler_(&handler) {}
 
     std::shared_ptr<disruptor::EventProcessor>
-    createEventProcessor(RingBufferT &ringBuffer,
-                         disruptor::Sequence *const *barrierSequences,
+    createEventProcessor(RingBufferT& ringBuffer,
+                         disruptor::Sequence* const* barrierSequences,
                          int count) override {
       disruptor::BatchEventProcessorBuilder builder;
       barrier_ = ringBuffer.newBarrier(barrierSequences, count);
@@ -699,8 +681,8 @@ TEST(DisruptorTest, shouldSupportAddingCustomEventProcessorWithFactory) {
     }
 
   private:
-    disruptor::dsl::stubs::SleepingEventHandler *handler_;
-    decltype(std::declval<RingBufferT &>().newBarrier(nullptr, 0)) barrier_;
+    disruptor::dsl::stubs::SleepingEventHandler* handler_;
+    decltype(std::declval<RingBufferT&>().newBarrier(nullptr, 0)) barrier_;
   };
 
   disruptor::dsl::stubs::SleepingEventHandler handler2;
@@ -709,7 +691,7 @@ TEST(DisruptorTest, shouldSupportAddingCustomEventProcessorWithFactory) {
 
   // Keep processor alive for the lifetime of the test
   std::shared_ptr<disruptor::EventProcessor> keptProcessor = b1;
-  disruptor::EventProcessor *processors[] = {b1.get()};
+  disruptor::EventProcessor* processors[] = {b1.get()};
   d.handleEventsWith(processors, 1).thenFactories(b2);
 
   d.start();
@@ -724,28 +706,26 @@ TEST(DisruptorTest, shouldSupportAddingCustomEventProcessorWithFactory) {
 TEST(DisruptorTest, shouldAllowSpecifyingSpecificEventProcessorsToWaitFor) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   DisruptorTestHelper helper;
-  auto &handler1 = helper.createDelayedEventHandler();
-  auto &handler2 = helper.createDelayedEventHandler();
+  auto& handler1 = helper.createDelayedEventHandler();
+  auto& handler2 = helper.createDelayedEventHandler();
 
   disruptor::test_support::CountDownLatch countDownLatch(2);
-  disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(
-      countDownLatch);
+  disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(countDownLatch);
 
   d.handleEventsWith(handler1, handler2);
-  disruptor::EventHandlerIdentity *handlers[] = {&handler1, &handler2};
+  disruptor::EventHandlerIdentity* handlers[] = {&handler1, &handler2};
   d.after(handlers, 2).handleEventsWith(handlerWithBarrier);
 
-  std::vector<disruptor::dsl::stubs::DelayedEventHandler *> deps;
+  std::vector<disruptor::dsl::stubs::DelayedEventHandler*> deps;
   deps.push_back(&handler1);
   deps.push_back(&handler2);
-  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch,
-                                                  deps);
+  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch, deps);
 
   helper.tearDown();
   d.halt();
@@ -755,30 +735,28 @@ TEST(DisruptorTest, shouldAllowSpecifyingSpecificEventProcessorsToWaitFor) {
 TEST(DisruptorTest, shouldWaitOnAllProducersJoinedByAnd) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   DisruptorTestHelper helper;
-  auto &handler1 = helper.createDelayedEventHandler();
-  auto &handler2 = helper.createDelayedEventHandler();
+  auto& handler1 = helper.createDelayedEventHandler();
+  auto& handler2 = helper.createDelayedEventHandler();
 
   disruptor::test_support::CountDownLatch countDownLatch(2);
-  disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(
-      countDownLatch);
+  disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(countDownLatch);
 
   d.handleEventsWith(handler1);
   auto handler2Group = d.handleEventsWith(handler2);
-  disruptor::EventHandlerIdentity *handlers1[] = {&handler1};
+  disruptor::EventHandlerIdentity* handlers1[] = {&handler1};
   auto handler1Group = d.after(handlers1, 1);
   handler1Group.and_(handler2Group).handleEventsWith(handlerWithBarrier);
 
-  std::vector<disruptor::dsl::stubs::DelayedEventHandler *> deps;
+  std::vector<disruptor::dsl::stubs::DelayedEventHandler*> deps;
   deps.push_back(&handler1);
   deps.push_back(&handler2);
-  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch,
-                                                  deps);
+  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch, deps);
 
   helper.tearDown();
   d.halt();
@@ -788,17 +766,16 @@ TEST(DisruptorTest, shouldWaitOnAllProducersJoinedByAnd) {
 TEST(DisruptorTest, shouldThrowExceptionIfHandlerIsNotAlreadyConsuming) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
   disruptor::dsl::stubs::DelayedEventHandler handler;
   disruptor::dsl::stubs::DelayedEventHandler handler2;
 
-  disruptor::EventHandlerIdentity *handlers[] = {&handler};
-  EXPECT_THROW(d.after(handlers, 1).handleEventsWith(handler2),
-               std::invalid_argument);
+  disruptor::EventHandlerIdentity* handlers[] = {&handler};
+  EXPECT_THROW(d.after(handlers, 1).handleEventsWith(handler2), std::invalid_argument);
 
   d.halt();
   d.join();  // Wait for consumer threads to finish before handlers are destroyed
@@ -807,10 +784,10 @@ TEST(DisruptorTest, shouldThrowExceptionIfHandlerIsNotAlreadyConsuming) {
 TEST(DisruptorTest, shouldTrackEventHandlersByIdentityNotEquality) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
   disruptor::dsl::stubs::EvilEqualsEventHandler handler1;
   disruptor::dsl::stubs::EvilEqualsEventHandler handler2;
@@ -819,25 +796,23 @@ TEST(DisruptorTest, shouldTrackEventHandlersByIdentityNotEquality) {
 
   // handler2 == handler1 (evil equals) but it hasn't yet been registered so
   // should throw exception.
-  disruptor::EventHandlerIdentity *handlers2[] = {&handler2};
+  disruptor::EventHandlerIdentity* handlers2[] = {&handler2};
   EXPECT_THROW(d.after(handlers2, 1), std::invalid_argument);
 
   d.halt();
   d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
-TEST(DisruptorTest,
-     shouldSupportSpecifyingAExceptionHandlerForEventProcessors) {
+TEST(DisruptorTest, shouldSupportSpecifyingAExceptionHandlerForEventProcessors) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
-  std::atomic<std::exception *> eventHandled{nullptr};
-  disruptor::dsl::stubs::StubExceptionHandler<Event> exceptionHandler(
-      eventHandled);
+  std::atomic<std::exception*> eventHandled{nullptr};
+  disruptor::dsl::stubs::StubExceptionHandler<Event> exceptionHandler(eventHandled);
   std::runtime_error testException("test");
   disruptor::dsl::stubs::ExceptionThrowingEventHandler handler(&testException);
 
@@ -848,26 +823,24 @@ TEST(DisruptorTest,
   d.publishEvent(translator);
   d.start();
 
-  auto *actualException = waitFor(eventHandled);
+  auto* actualException = waitFor(eventHandled);
   EXPECT_NE(nullptr, actualException);
 
   d.halt();
   d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
-TEST(
-    DisruptorTest,
-    shouldOnlyApplyExceptionsHandlersSpecifiedViaHandleExceptionsWithOnNewEventProcessors) {
+TEST(DisruptorTest,
+     shouldOnlyApplyExceptionsHandlersSpecifiedViaHandleExceptionsWithOnNewEventProcessors) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
-  std::atomic<std::exception *> eventHandled{nullptr};
-  disruptor::dsl::stubs::StubExceptionHandler<Event> exceptionHandler(
-      eventHandled);
+  std::atomic<std::exception*> eventHandled{nullptr};
+  disruptor::dsl::stubs::StubExceptionHandler<Event> exceptionHandler(eventHandled);
   std::runtime_error testException("test");
   disruptor::dsl::stubs::ExceptionThrowingEventHandler handler(&testException);
 
@@ -880,25 +853,23 @@ TEST(
   d.publishEvent(translator);
   d.start();
 
-  auto *actualException = waitFor(eventHandled);
+  auto* actualException = waitFor(eventHandled);
   EXPECT_NE(nullptr, actualException);
 
   d.halt();
   d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
-TEST(DisruptorTest,
-     shouldSupportSpecifyingADefaultExceptionHandlerForEventProcessors) {
+TEST(DisruptorTest, shouldSupportSpecifyingADefaultExceptionHandlerForEventProcessors) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
-  std::atomic<std::exception *> eventHandled{nullptr};
-  disruptor::dsl::stubs::StubExceptionHandler<Event> exceptionHandler(
-      eventHandled);
+  std::atomic<std::exception*> eventHandled{nullptr};
+  disruptor::dsl::stubs::StubExceptionHandler<Event> exceptionHandler(eventHandled);
   std::runtime_error testException("test");
   disruptor::dsl::stubs::ExceptionThrowingEventHandler handler(&testException);
 
@@ -909,25 +880,23 @@ TEST(DisruptorTest,
   d.publishEvent(translator);
   d.start();
 
-  auto *actualException = waitFor(eventHandled);
+  auto* actualException = waitFor(eventHandled);
   EXPECT_NE(nullptr, actualException);
 
   d.halt();
   d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
-TEST(DisruptorTest,
-     shouldApplyDefaultExceptionHandlerToExistingEventProcessors) {
+TEST(DisruptorTest, shouldApplyDefaultExceptionHandlerToExistingEventProcessors) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
-  std::atomic<std::exception *> eventHandled{nullptr};
-  disruptor::dsl::stubs::StubExceptionHandler<Event> exceptionHandler(
-      eventHandled);
+  std::atomic<std::exception*> eventHandled{nullptr};
+  disruptor::dsl::stubs::StubExceptionHandler<Event> exceptionHandler(eventHandled);
   std::runtime_error testException("test");
   disruptor::dsl::stubs::ExceptionThrowingEventHandler handler(&testException);
 
@@ -938,7 +907,7 @@ TEST(DisruptorTest,
   d.publishEvent(translator);
   d.start();
 
-  auto *actualException = waitFor(eventHandled);
+  auto* actualException = waitFor(eventHandled);
   EXPECT_NE(nullptr, actualException);
 
   d.halt();
@@ -948,14 +917,14 @@ TEST(DisruptorTest,
 TEST(DisruptorTest, shouldBlockProducerUntilAllEventProcessorsHaveAdvanced) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   // Java: bufferSize = 4, ProducerType.SINGLE
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::SINGLE, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   DisruptorTestHelper helper;
-  auto &delayedEventHandler = helper.createDelayedEventHandler();
+  auto& delayedEventHandler = helper.createDelayedEventHandler();
   d.handleEventsWith(delayedEventHandler);
 
   auto ringBuffer = d.start();
@@ -986,48 +955,45 @@ TEST(DisruptorTest, shouldBlockProducerUntilAllEventProcessorsHaveAdvanced) {
   publisherThread.join();
   helper.tearDown();
   d.halt();
-  d.join();  // Wait for consumer threads to finish before handlers are destroyed // Ensure Disruptor threads are joined before destruction
+  d.join();  // Wait for consumer threads to finish before handlers are destroyed // Ensure
+             // Disruptor threads are joined before destruction
 }
 
-TEST(DisruptorTest,
-     shouldBeAbleToOverrideTheExceptionHandlerForAEventProcessor) {
+TEST(DisruptorTest, shouldBeAbleToOverrideTheExceptionHandlerForAEventProcessor) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
   std::runtime_error testException("test");
-  disruptor::dsl::stubs::ExceptionThrowingEventHandler eventHandler(
-      &testException);
+  disruptor::dsl::stubs::ExceptionThrowingEventHandler eventHandler(&testException);
   d.handleEventsWith(eventHandler);
 
-  std::atomic<std::exception *> reference{nullptr};
-  disruptor::dsl::stubs::StubExceptionHandler<Event> exceptionHandler(
-      reference);
+  std::atomic<std::exception*> reference{nullptr};
+  disruptor::dsl::stubs::StubExceptionHandler<Event> exceptionHandler(reference);
   d.handleExceptionsFor(eventHandler).with(exceptionHandler);
 
   NoOpTranslator translator;
   d.publishEvent(translator);
   d.start();
 
-  auto *actualException = waitFor(reference);
+  auto* actualException = waitFor(reference);
   EXPECT_NE(nullptr, actualException);
 
   d.halt();
   d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
-TEST(
-    DisruptorTest,
-    shouldThrowExceptionWhenAddingEventProcessorsAfterTheProducerBarrierHasBeenCreated) {
+TEST(DisruptorTest,
+     shouldThrowExceptionWhenAddingEventProcessorsAfterTheProducerBarrierHasBeenCreated) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
   disruptor::dsl::stubs::SleepingEventHandler handler1;
   d.handleEventsWith(handler1);
@@ -1043,10 +1009,10 @@ TEST(
 TEST(DisruptorTest, shouldThrowExceptionIfStartIsCalledTwice) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
   disruptor::dsl::stubs::SleepingEventHandler handler;
   d.handleEventsWith(handler);
@@ -1061,18 +1027,17 @@ TEST(DisruptorTest, shouldThrowExceptionIfStartIsCalledTwice) {
 TEST(DisruptorTest, shouldSupportCustomProcessorsAsDependencies) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   DisruptorTestHelper helper;
-  auto &ringBuffer = d.getRingBuffer();
-  auto &delayedEventHandler = helper.createDelayedEventHandler();
+  auto& ringBuffer = d.getRingBuffer();
+  auto& delayedEventHandler = helper.createDelayedEventHandler();
 
   disruptor::test_support::CountDownLatch countDownLatch(2);
-  disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(
-      countDownLatch);
+  disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(countDownLatch);
 
   disruptor::BatchEventProcessorBuilder builder;
   auto barrier = ringBuffer.newBarrier();
@@ -1080,13 +1045,12 @@ TEST(DisruptorTest, shouldSupportCustomProcessorsAsDependencies) {
 
   // Keep processor alive for the lifetime of the test
   std::shared_ptr<disruptor::EventProcessor> keptProcessor = processor;
-  disruptor::EventProcessor *processors[] = {processor.get()};
+  disruptor::EventProcessor* processors[] = {processor.get()};
   d.handleEventsWith(processors, 1).then(handlerWithBarrier);
 
-  std::vector<disruptor::dsl::stubs::DelayedEventHandler *> deps;
+  std::vector<disruptor::dsl::stubs::DelayedEventHandler*> deps;
   deps.push_back(&delayedEventHandler);
-  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch,
-                                                  deps);
+  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch, deps);
 
   helper.tearDown();
   d.halt();
@@ -1096,34 +1060,31 @@ TEST(DisruptorTest, shouldSupportCustomProcessorsAsDependencies) {
 TEST(DisruptorTest, shouldSupportHandlersAsDependenciesToCustomProcessors) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   DisruptorTestHelper helper;
-  auto &delayedEventHandler = helper.createDelayedEventHandler();
+  auto& delayedEventHandler = helper.createDelayedEventHandler();
   d.handleEventsWith(delayedEventHandler);
 
-  auto &ringBuffer = d.getRingBuffer();
+  auto& ringBuffer = d.getRingBuffer();
   disruptor::test_support::CountDownLatch countDownLatch(2);
-  disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(
-      countDownLatch);
+  disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(countDownLatch);
 
-  disruptor::EventHandlerIdentity *handlers3[] = {&delayedEventHandler};
+  disruptor::EventHandlerIdentity* handlers3[] = {&delayedEventHandler};
   auto sequenceBarrier = d.after(handlers3, 1).asSequenceBarrier();
   disruptor::BatchEventProcessorBuilder builder;
-  auto processor =
-      builder.build(ringBuffer, *sequenceBarrier, handlerWithBarrier);
+  auto processor = builder.build(ringBuffer, *sequenceBarrier, handlerWithBarrier);
   // Keep processor alive for the lifetime of the test
   std::shared_ptr<disruptor::EventProcessor> keptProcessor = processor;
-  disruptor::EventProcessor *processors[] = {processor.get()};
+  disruptor::EventProcessor* processors[] = {processor.get()};
   d.handleEventsWith(processors, 1);
 
-  std::vector<disruptor::dsl::stubs::DelayedEventHandler *> deps;
+  std::vector<disruptor::dsl::stubs::DelayedEventHandler*> deps;
   deps.push_back(&delayedEventHandler);
-  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch,
-                                                  deps);
+  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch, deps);
 
   helper.tearDown();
   d.halt();
@@ -1133,56 +1094,50 @@ TEST(DisruptorTest, shouldSupportHandlersAsDependenciesToCustomProcessors) {
 TEST(DisruptorTest, shouldSupportCustomProcessorsAndHandlersAsDependencies) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   DisruptorTestHelper helper;
-  auto &delayedEventHandler1 = helper.createDelayedEventHandler();
-  auto &delayedEventHandler2 = helper.createDelayedEventHandler();
+  auto& delayedEventHandler1 = helper.createDelayedEventHandler();
+  auto& delayedEventHandler2 = helper.createDelayedEventHandler();
   d.handleEventsWith(delayedEventHandler1);
 
-  auto &ringBuffer = d.getRingBuffer();
+  auto& ringBuffer = d.getRingBuffer();
   disruptor::test_support::CountDownLatch countDownLatch(2);
-  disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(
-      countDownLatch);
+  disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(countDownLatch);
 
-  disruptor::EventHandlerIdentity *handlers4[] = {&delayedEventHandler1};
+  disruptor::EventHandlerIdentity* handlers4[] = {&delayedEventHandler1};
   auto sequenceBarrier = d.after(handlers4, 1).asSequenceBarrier();
   disruptor::BatchEventProcessorBuilder builder;
-  auto processor =
-      builder.build(ringBuffer, *sequenceBarrier, delayedEventHandler2);
+  auto processor = builder.build(ringBuffer, *sequenceBarrier, delayedEventHandler2);
 
   // Keep processor alive for the lifetime of the test
   std::shared_ptr<disruptor::EventProcessor> keptProcessor = processor;
-  disruptor::EventProcessor *processors[] = {processor.get()};
-  d.after(handlers4, 1)
-      .and_(processors, 1)
-      .handleEventsWith(handlerWithBarrier);
+  disruptor::EventProcessor* processors[] = {processor.get()};
+  d.after(handlers4, 1).and_(processors, 1).handleEventsWith(handlerWithBarrier);
 
-  std::vector<disruptor::dsl::stubs::DelayedEventHandler *> deps;
+  std::vector<disruptor::dsl::stubs::DelayedEventHandler*> deps;
   deps.push_back(&delayedEventHandler1);
   deps.push_back(&delayedEventHandler2);
-  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch,
-                                                  deps);
+  ensureTwoEventsProcessedAccordingToDependencies(helper, d, countDownLatch, deps);
 
   helper.tearDown();
   d.halt();
   d.join();  // Wait for consumer threads to finish before handlers are destroyed
 }
 
-TEST(DisruptorTest,
-     shouldThrowTimeoutExceptionIfShutdownDoesNotCompleteNormally) {
+TEST(DisruptorTest, shouldThrowTimeoutExceptionIfShutdownDoesNotCompleteNormally) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
   DisruptorTestHelper helper;
-  auto &delayedEventHandler = helper.createDelayedEventHandler();
+  auto& delayedEventHandler = helper.createDelayedEventHandler();
   d.handleEventsWith(delayedEventHandler);
 
   // Java: publishEvent() auto-starts disruptor and waits for
@@ -1201,28 +1156,27 @@ TEST(DisruptorTest,
 TEST(DisruptorTest, shouldTrackRemainingCapacity) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
   int64_t remainingCapacity = -1;
+
   class CapacityTrackingHandler final : public disruptor::EventHandler<Event> {
   public:
     explicit CapacityTrackingHandler(
-        disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI,
-                                  WS> &d,
-        int64_t &capacity)
-        : d_(&d), capacity_(&capacity) {}
-    void onEvent(Event & /*event*/, int64_t /*sequence*/,
-                 bool /*endOfBatch*/) override {
+      disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS>& d,
+      int64_t& capacity)
+      : d_(&d), capacity_(&capacity) {}
+
+    void onEvent(Event& /*event*/, int64_t /*sequence*/, bool /*endOfBatch*/) override {
       *capacity_ = d_->getRingBuffer().remainingCapacity();
     }
 
   private:
-    disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS>
-        *d_;
-    int64_t *capacity_;
+    disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS>* d_;
+    int64_t* capacity_;
   };
 
   CapacityTrackingHandler eventHandler(d, remainingCapacity);
@@ -1246,26 +1200,27 @@ TEST(DisruptorTest, shouldTrackRemainingCapacity) {
 TEST(DisruptorTest, shouldAllowEventHandlerWithSuperType) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   disruptor::test_support::CountDownLatch latch(2);
+
   // Note: Use EventHandler<Event> but accept any type (Java uses
   // EventHandler<Object>)
   class ObjectHandler final : public disruptor::EventHandler<Event> {
   public:
-    explicit ObjectHandler(disruptor::test_support::CountDownLatch &latch)
-        : latch_(&latch) {}
-    void onEvent(Event & /*event*/, int64_t /*sequence*/,
-                 bool /*endOfBatch*/) override {
+    explicit ObjectHandler(disruptor::test_support::CountDownLatch& latch) : latch_(&latch) {}
+
+    void onEvent(Event& /*event*/, int64_t /*sequence*/, bool /*endOfBatch*/) override {
       latch_->countDown();
     }
 
   private:
-    disruptor::test_support::CountDownLatch *latch_;
+    disruptor::test_support::CountDownLatch* latch_;
   };
+
   ObjectHandler objectHandler(latch);
 
   d.handleEventsWith(objectHandler);
@@ -1283,31 +1238,32 @@ TEST(DisruptorTest, shouldAllowEventHandlerWithSuperType) {
 TEST(DisruptorTest, shouldAllowChainingEventHandlersWithSuperType) {
   using Event = disruptor::support::TestEvent;
   using WS = disruptor::BlockingWaitStrategy;
-  auto &tf = disruptor::util::DaemonThreadFactory::INSTANCE();
+  auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
   WS ws;
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-      disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
+    disruptor::support::TestEvent::EVENT_FACTORY, 4, tf, ws);
 
   DisruptorTestHelper helper;
   disruptor::test_support::CountDownLatch latch(2);
-  auto &delayedEventHandler = helper.createDelayedEventHandler();
+  auto& delayedEventHandler = helper.createDelayedEventHandler();
+
   class ObjectHandler final : public disruptor::EventHandler<Event> {
   public:
-    explicit ObjectHandler(disruptor::test_support::CountDownLatch &latch)
-        : latch_(&latch) {}
-    void onEvent(Event & /*event*/, int64_t /*sequence*/,
-                 bool /*endOfBatch*/) override {
+    explicit ObjectHandler(disruptor::test_support::CountDownLatch& latch) : latch_(&latch) {}
+
+    void onEvent(Event& /*event*/, int64_t /*sequence*/, bool /*endOfBatch*/) override {
       latch_->countDown();
     }
 
   private:
-    disruptor::test_support::CountDownLatch *latch_;
+    disruptor::test_support::CountDownLatch* latch_;
   };
+
   ObjectHandler objectHandler(latch);
 
   d.handleEventsWith(delayedEventHandler).then(objectHandler);
 
-  std::vector<disruptor::dsl::stubs::DelayedEventHandler *> deps;
+  std::vector<disruptor::dsl::stubs::DelayedEventHandler*> deps;
   deps.push_back(&delayedEventHandler);
   ensureTwoEventsProcessedAccordingToDependencies(helper, d, latch, deps);
 

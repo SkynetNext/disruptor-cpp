@@ -8,10 +8,10 @@
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 
+#include "../ByteBuffer.h"
 #include "../LongEvent.h"
 #include "../LongEventFactory.h"
 #include "../LongEventHandler.h"
-#include "../ByteBuffer.h"
 
 #include <chrono>
 #include <cstdint>
@@ -42,11 +42,12 @@ public:
 private:
   RB* rb_;
 };
-} // namespace
+}  // namespace
 
 int main() {
   using WS = disruptor::BlockingWaitStrategy;
-  using D = disruptor::dsl::Disruptor<disruptor_examples::longevent::LongEvent, disruptor::dsl::ProducerType::MULTI, WS>;
+  using D = disruptor::dsl::Disruptor<disruptor_examples::longevent::LongEvent,
+                                      disruptor::dsl::ProducerType::MULTI, WS>;
   disruptor_examples::longevent::LongEventFactory factory;
   constexpr int bufferSize = 1024;
   auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
@@ -72,5 +73,3 @@ int main() {
   disruptor.shutdown(2000);
   return 0;
 }
-
-

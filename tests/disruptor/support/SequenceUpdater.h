@@ -16,9 +16,11 @@ public:
   ::disruptor::Sequence sequence;
 
   SequenceUpdater(int64_t sleepTimeMillis, WaitStrategyT& waitStrategy)
-      : barrier_(2), sleepTimeMillis_(sleepTimeMillis), waitStrategy_(&waitStrategy) {}
+    : barrier_(2), sleepTimeMillis_(sleepTimeMillis), waitStrategy_(&waitStrategy) {}
 
-  void operator()() { run(); }
+  void operator()() {
+    run();
+  }
 
   void run() {
     try {
@@ -33,7 +35,9 @@ public:
     }
   }
 
-  void waitForStartup() { barrier_.arrive_and_wait(); }
+  void waitForStartup() {
+    barrier_.arrive_and_wait();
+  }
 
 private:
   std::barrier<> barrier_;
@@ -41,6 +45,4 @@ private:
   WaitStrategyT* waitStrategy_;
 };
 
-} // namespace disruptor::support
-
-
+}  // namespace disruptor::support

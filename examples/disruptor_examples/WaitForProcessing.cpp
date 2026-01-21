@@ -1,9 +1,9 @@
 // 1:1 port of:
 // reference/disruptor/src/examples/java/com/lmax/disruptor/examples/WaitForProcessing.java
 
-#include "disruptor/dsl/Disruptor.h"
-#include "disruptor/EventHandler.h"
 #include "disruptor/BlockingWaitStrategy.h"
+#include "disruptor/EventHandler.h"
+#include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 
 #include "support/LongEvent.h"
@@ -14,12 +14,16 @@
 namespace {
 class Consumer final : public disruptor::EventHandler<disruptor_examples::support::LongEvent> {
 public:
-  void onEvent(disruptor_examples::support::LongEvent& /*event*/, int64_t /*sequence*/, bool /*endOfBatch*/) override {}
+  void onEvent(disruptor_examples::support::LongEvent& /*event*/,
+               int64_t /*sequence*/,
+               bool /*endOfBatch*/) override {}
 };
 
 class Translator final : public disruptor::EventTranslator<disruptor_examples::support::LongEvent> {
 public:
-  void translateTo(disruptor_examples::support::LongEvent& event, int64_t sequence) override { event.set(sequence - 4); }
+  void translateTo(disruptor_examples::support::LongEvent& event, int64_t sequence) override {
+    event.set(sequence - 4);
+  }
 };
 
 template <typename RingBufferT>
@@ -31,7 +35,8 @@ static void waitForRingBufferToBeIdle(RingBufferT& ringBuffer) {
 }
 
 template <typename DisruptorT, typename RingBufferT>
-static void waitForSpecificConsumer(DisruptorT& disruptor, Consumer& lastConsumer, RingBufferT& ringBuffer) {
+static void
+waitForSpecificConsumer(DisruptorT& disruptor, Consumer& lastConsumer, RingBufferT& ringBuffer) {
   int64_t lastPublishedValue;
   int64_t sequenceValueFor;
   do {
@@ -39,7 +44,7 @@ static void waitForSpecificConsumer(DisruptorT& disruptor, Consumer& lastConsume
     sequenceValueFor = disruptor.getSequenceValueFor(lastConsumer);
   } while (sequenceValueFor < lastPublishedValue);
 }
-} // namespace
+}  // namespace
 
 int main() {
   auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
@@ -67,5 +72,3 @@ int main() {
   disruptor.shutdown();
   return 0;
 }
-
-

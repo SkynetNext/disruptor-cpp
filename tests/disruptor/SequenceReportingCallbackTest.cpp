@@ -11,17 +11,19 @@
 #include <thread>
 
 namespace {
-class TestSequenceReportingEventHandler final : public disruptor::EventHandler<disruptor::support::StubEvent> {
+class TestSequenceReportingEventHandler final
+  : public disruptor::EventHandler<disruptor::support::StubEvent> {
 public:
   TestSequenceReportingEventHandler(disruptor::test_support::CountDownLatch& callbackLatch,
-                                   disruptor::test_support::CountDownLatch& onEndOfBatchLatch)
-      : callbackLatch_(&callbackLatch), onEndOfBatchLatch_(&onEndOfBatchLatch) {}
+                                    disruptor::test_support::CountDownLatch& onEndOfBatchLatch)
+    : callbackLatch_(&callbackLatch), onEndOfBatchLatch_(&onEndOfBatchLatch) {}
 
   void setSequenceCallback(disruptor::Sequence& sequenceTrackerCallback) override {
     sequenceCallback_ = &sequenceTrackerCallback;
   }
 
-  void onEvent(disruptor::support::StubEvent& /*event*/, int64_t sequence, bool endOfBatch) override {
+  void
+  onEvent(disruptor::support::StubEvent& /*event*/, int64_t sequence, bool endOfBatch) override {
     sequenceCallback_->set(sequence);
     callbackLatch_->countDown();
 
@@ -35,20 +37,19 @@ private:
   disruptor::test_support::CountDownLatch* callbackLatch_;
   disruptor::test_support::CountDownLatch* onEndOfBatchLatch_;
 };
-} // namespace
+}  // namespace
 
 TEST(SequenceReportingCallbackTest, shouldReportProgressByUpdatingSequenceViaCallback) {
   disruptor::test_support::CountDownLatch callbackLatch(1);
   disruptor::test_support::CountDownLatch onEndOfBatchLatch(1);
 
-  auto ringBuffer =
-      []() {
-        using Event = disruptor::support::StubEvent;
-        using WS = disruptor::BusySpinWaitStrategy;
-        using RB = disruptor::MultiProducerRingBuffer<Event, WS>;
-        WS ws;
-        return RB::createMultiProducer(disruptor::support::StubEvent::EVENT_FACTORY, 16, ws);
-      }();
+  auto ringBuffer = []() {
+    using Event = disruptor::support::StubEvent;
+    using WS = disruptor::BusySpinWaitStrategy;
+    using RB = disruptor::MultiProducerRingBuffer<Event, WS>;
+    WS ws;
+    return RB::createMultiProducer(disruptor::support::StubEvent::EVENT_FACTORY, 16, ws);
+  }();
   auto sequenceBarrier = ringBuffer->newBarrier(nullptr, 0);
 
   TestSequenceReportingEventHandler handler(callbackLatch, onEndOfBatchLatch);

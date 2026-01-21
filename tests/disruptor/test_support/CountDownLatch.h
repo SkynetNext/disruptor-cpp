@@ -36,6 +36,4 @@ private:
   int64_t count_;
 };
 
-} // namespace disruptor::test_support
-
-
+}  // namespace disruptor::test_support

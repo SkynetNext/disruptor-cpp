@@ -35,6 +35,4 @@ struct WaitStrategyTestUtil {
   }
 };
 
-} // namespace disruptor::support
-
-
+}  // namespace disruptor::support

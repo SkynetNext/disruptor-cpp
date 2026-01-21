@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "disruptor/dsl/ConsumerRepository.h"
+#include "tests/disruptor/dsl/stubs/SleepingEventHandler.h"
 #include "tests/disruptor/support/DummyEventProcessor.h"
 #include "tests/disruptor/support/DummySequenceBarrier.h"
-#include "tests/disruptor/dsl/stubs/SleepingEventHandler.h"
 
 TEST(ConsumerRepositoryTest, shouldGetBarrierByHandler) {
   using BarrierPtrT = disruptor::support::DummySequenceBarrier*;

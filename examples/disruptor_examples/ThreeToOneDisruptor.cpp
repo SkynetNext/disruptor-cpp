@@ -1,9 +1,9 @@
 // 1:1 port of:
 // reference/disruptor/src/examples/java/com/lmax/disruptor/examples/ThreeToOneDisruptor.java
 
-#include "disruptor/dsl/Disruptor.h"
-#include "disruptor/EventHandler.h"
 #include "disruptor/BlockingWaitStrategy.h"
+#include "disruptor/EventHandler.h"
+#include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 
 #include <array>
@@ -16,9 +16,13 @@ struct DataEvent {
   std::array<int64_t, 3> output{};
 
   struct Factory final : public disruptor::EventFactory<DataEvent> {
-    DataEvent newInstance() override { return DataEvent(); }
+    DataEvent newInstance() override {
+      return DataEvent();
+    }
   };
-  static inline std::shared_ptr<disruptor::EventFactory<DataEvent>> FACTORY = std::make_shared<Factory>();
+
+  static inline std::shared_ptr<disruptor::EventFactory<DataEvent>> FACTORY =
+    std::make_shared<Factory>();
 };
 
 class TransformingHandler final : public disruptor::EventHandler<DataEvent> {
@@ -31,7 +35,10 @@ public:
 
 private:
   int outputIndex_;
-  static int64_t doSomething(int64_t input) { return input; }
+
+  static int64_t doSomething(int64_t input) {
+    return input;
+  }
 };
 
 class CollatingHandler final : public disruptor::EventHandler<DataEvent> {
@@ -41,7 +48,7 @@ public:
   }
 };
 
-} // namespace
+}  // namespace
 
 int main() {
   auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
@@ -62,5 +69,3 @@ int main() {
   disruptor.shutdown();
   return 0;
 }
-
-

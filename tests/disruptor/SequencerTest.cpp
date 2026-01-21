@@ -23,7 +23,7 @@ template <typename WS>
 auto newMultiProducer(int bufferSize, WS& ws) {
   return std::make_unique<disruptor::MultiProducerSequencer<WS>>(bufferSize, ws);
 }
-} // namespace
+}  // namespace
 
 TEST(SequencerTest, shouldStartWithInitialValue_single) {
   using WS = disruptor::BlockingWaitStrategy;

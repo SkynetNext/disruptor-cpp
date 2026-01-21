@@ -9,11 +9,14 @@
 #include <thread>
 
 namespace {
-class NoThrowRewindableHandler final : public disruptor::RewindableEventHandler<disruptor::support::LongEvent> {
+class NoThrowRewindableHandler final
+  : public disruptor::RewindableEventHandler<disruptor::support::LongEvent> {
 public:
-  void onEvent(disruptor::support::LongEvent& /*event*/, int64_t /*sequence*/, bool /*endOfBatch*/) override {}
+  void onEvent(disruptor::support::LongEvent& /*event*/,
+               int64_t /*sequence*/,
+               bool /*endOfBatch*/) override {}
 };
-} // namespace
+}  // namespace
 
 TEST(RewindBatchEventProcessorTest, shouldRunWithRewindableHandler_smoke) {
   using Event = disruptor::support::LongEvent;

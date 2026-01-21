@@ -15,8 +15,9 @@ namespace disruptor::dsl::stubs {
 template <typename SequencerT>
 class StubPublisher {
 public:
-  explicit StubPublisher(disruptor::RingBuffer<disruptor::support::TestEvent, SequencerT>& ringBuffer)
-      : running_(true), publicationCount_(0), ringBuffer_(&ringBuffer) {}
+  explicit StubPublisher(
+    disruptor::RingBuffer<disruptor::support::TestEvent, SequencerT>& ringBuffer)
+    : running_(true), publicationCount_(0), ringBuffer_(&ringBuffer) {}
 
   void run() {
     while (running_.load()) {
@@ -40,9 +41,13 @@ public:
     }
   }
 
-  int getPublicationCount() const { return publicationCount_.load(); }
+  int getPublicationCount() const {
+    return publicationCount_.load();
+  }
 
-  void halt() { running_.store(false); }
+  void halt() {
+    running_.store(false);
+  }
 
 private:
   std::atomic<bool> running_;
@@ -50,5 +55,4 @@ private:
   disruptor::RingBuffer<disruptor::support::TestEvent, SequencerT>* ringBuffer_;
 };
 
-} // namespace disruptor::dsl::stubs
-
+}  // namespace disruptor::dsl::stubs

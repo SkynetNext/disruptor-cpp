@@ -12,7 +12,8 @@ TEST(RingBufferTest, shouldClaimAndGet) {
   using Event = disruptor::support::StubEvent;
   using WS = disruptor::BusySpinWaitStrategy;
   WS ws;
-  auto ringBuffer = disruptor::MultiProducerRingBuffer<Event, WS>::createMultiProducer(disruptor::support::StubEvent::EVENT_FACTORY, 32, ws);
+  auto ringBuffer = disruptor::MultiProducerRingBuffer<Event, WS>::createMultiProducer(
+    disruptor::support::StubEvent::EVENT_FACTORY, 32, ws);
   auto barrier = ringBuffer->newBarrier(nullptr, 0);
 
   using RB = std::remove_reference_t<decltype(*ringBuffer)>;
@@ -32,7 +33,8 @@ TEST(RingBufferTest, shouldPreventWrapping) {
   using Event = disruptor::support::StubEvent;
   using WS = disruptor::BusySpinWaitStrategy;
   WS ws;
-  auto rb = disruptor::MultiProducerRingBuffer<Event, WS>::createMultiProducer(disruptor::support::StubEvent::EVENT_FACTORY, 4, ws);
+  auto rb = disruptor::MultiProducerRingBuffer<Event, WS>::createMultiProducer(
+    disruptor::support::StubEvent::EVENT_FACTORY, 4, ws);
   disruptor::Sequence gating(disruptor::Sequencer::INITIAL_CURSOR_VALUE);
   rb->addGatingSequences(gating);
 
@@ -48,7 +50,8 @@ TEST(RingBufferTest, shouldThrowExceptionIfBufferIsFull) {
   using Event = disruptor::support::StubEvent;
   using WS = disruptor::BusySpinWaitStrategy;
   WS ws;
-  auto ringBuffer = disruptor::MultiProducerRingBuffer<Event, WS>::createMultiProducer(disruptor::support::StubEvent::EVENT_FACTORY, 32, ws);
+  auto ringBuffer = disruptor::MultiProducerRingBuffer<Event, WS>::createMultiProducer(
+    disruptor::support::StubEvent::EVENT_FACTORY, 32, ws);
   auto barrier = ringBuffer->newBarrier(nullptr, 0);
   (void)barrier;
 

@@ -16,11 +16,16 @@
 
 namespace {
 
-class EarlyReleaseHandler final : public disruptor::EventHandler<disruptor_examples::support::LongEvent> {
+class EarlyReleaseHandler final
+  : public disruptor::EventHandler<disruptor_examples::support::LongEvent> {
 public:
-  void setSequenceCallback(disruptor::Sequence& sequenceCallback) override { sequenceCallback_ = &sequenceCallback; }
+  void setSequenceCallback(disruptor::Sequence& sequenceCallback) override {
+    sequenceCallback_ = &sequenceCallback;
+  }
 
-  void onEvent(disruptor_examples::support::LongEvent& event, int64_t sequence, bool endOfBatch) override {
+  void onEvent(disruptor_examples::support::LongEvent& event,
+               int64_t sequence,
+               bool endOfBatch) override {
     processEvent(event);
 
     bool logicalChunkOfWorkComplete = isLogicalChunkOfWorkComplete();
@@ -35,13 +40,16 @@ private:
   disruptor::Sequence* sequenceCallback_{nullptr};
   int batchRemaining_{20};
 
-  bool isLogicalChunkOfWorkComplete() { return --batchRemaining_ == -1; }
+  bool isLogicalChunkOfWorkComplete() {
+    return --batchRemaining_ == -1;
+  }
+
   static void processEvent(disruptor_examples::support::LongEvent& /*event*/) {
     // Do processing
   }
 };
 
-} // namespace
+}  // namespace
 
 int main() {
   using Event = disruptor_examples::support::LongEvent;
@@ -67,8 +75,7 @@ int main() {
   }
 
   processor->halt();
-  if (t.joinable()) t.join();
+  if (t.joinable())
+    t.join();
   return 0;
 }
-
-

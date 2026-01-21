@@ -20,6 +20,4 @@ inline benchmark::internal::Benchmark* applyJmhDefaults(benchmark::internal::Ben
   return b->ReportAggregatesOnly(true);
 }
 
-} // namespace disruptor::bench::jmh
-
-
+}  // namespace disruptor::bench::jmh

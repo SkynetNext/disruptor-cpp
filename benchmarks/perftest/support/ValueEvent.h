@@ -12,10 +12,16 @@ namespace disruptor::bench::perftest::support {
 class ValueEvent {
 public:
   ValueEvent() : value_(0) {}
+
   explicit ValueEvent(int64_t value) : value_(value) {}
 
-  int64_t getValue() const { return value_; }
-  void setValue(int64_t value) { value_ = value; }
+  int64_t getValue() const {
+    return value_;
+  }
+
+  void setValue(int64_t value) {
+    value_ = value;
+  }
 
   static std::shared_ptr<disruptor::EventFactory<ValueEvent>> EVENT_FACTORY;
 
@@ -26,12 +32,13 @@ private:
 // Factory implementation
 class ValueEventFactory : public disruptor::EventFactory<ValueEvent> {
 public:
-  ValueEvent newInstance() override { return ValueEvent(); }
+  ValueEvent newInstance() override {
+    return ValueEvent();
+  }
 };
 
 // Static factory instance
-inline std::shared_ptr<disruptor::EventFactory<ValueEvent>>
-    ValueEvent::EVENT_FACTORY = std::make_shared<ValueEventFactory>();
+inline std::shared_ptr<disruptor::EventFactory<ValueEvent>> ValueEvent::EVENT_FACTORY =
+  std::make_shared<ValueEventFactory>();
 
-} // namespace disruptor::bench::perftest::support
-
+}  // namespace disruptor::bench::perftest::support

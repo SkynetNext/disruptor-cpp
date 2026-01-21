@@ -4,9 +4,9 @@
 // Java version demonstrates wiring a per-handler ExceptionHandler that can decide fatality.
 // Java's sample loops forever; this C++ port runs a bounded number of publishes.
 
-#include "disruptor/ExceptionHandler.h"
-#include "disruptor/EventHandler.h"
 #include "disruptor/BlockingWaitStrategy.h"
+#include "disruptor/EventHandler.h"
+#include "disruptor/ExceptionHandler.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 
@@ -22,7 +22,9 @@ struct Event {
 };
 
 struct Factory final : public disruptor::EventFactory<Event> {
-  Event newInstance() override { return Event(); }
+  Event newInstance() override {
+    return Event();
+  }
 };
 
 class Handler final : public disruptor::EventHandler<Event> {
@@ -36,7 +38,8 @@ class ErrorHandler final : public disruptor::ExceptionHandler<Event> {
 public:
   explicit ErrorHandler(std::atomic<bool>& running) : running_(&running) {}
 
-  void handleEventException(const std::exception& ex, int64_t /*sequence*/, Event* /*event*/) override {
+  void
+  handleEventException(const std::exception& ex, int64_t /*sequence*/, Event* /*event*/) override {
     if (exceptionIsFatal(ex)) {
       // Fatal -> stop publishing and rethrow (matches example intent).
       running_->store(false, std::memory_order_release);
@@ -45,14 +48,18 @@ public:
   }
 
   void handleOnStartException(const std::exception& /*ex*/) override {}
+
   void handleOnShutdownException(const std::exception& /*ex*/) override {}
 
 private:
   std::atomic<bool>* running_;
-  static bool exceptionIsFatal(const std::exception& /*ex*/) { return true; }
+
+  static bool exceptionIsFatal(const std::exception& /*ex*/) {
+    return true;
+  }
 };
 
-} // namespace
+}  // namespace
 
 int main() {
   auto& tf = disruptor::util::DaemonThreadFactory::INSTANCE();
@@ -82,5 +89,3 @@ int main() {
   disruptor.shutdown(2000);
   return 0;
 }
-
-

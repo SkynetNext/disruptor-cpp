@@ -18,8 +18,8 @@ TEST(LiteTimeoutBlockingWaitStrategyTest, shouldTimeoutWaitFor) {
   const auto t0 = std::chrono::steady_clock::now();
 
   EXPECT_THROW(
-      { (void)waitStrategy.waitFor(6, cursor, cursor, sequenceBarrier); },
-      disruptor::TimeoutException);
+    { (void)waitStrategy.waitFor(6, cursor, cursor, sequenceBarrier); },
+    disruptor::TimeoutException);
 
   const auto t1 = std::chrono::steady_clock::now();
   const auto waited = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();

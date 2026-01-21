@@ -42,11 +42,14 @@ private:
   int64_t ordinal_;
 };
 
-class SetSequenceTranslator final : public disruptor::EventTranslator<disruptor::support::LongEvent> {
+class SetSequenceTranslator final
+  : public disruptor::EventTranslator<disruptor::support::LongEvent> {
 public:
-  void translateTo(disruptor::support::LongEvent& event, int64_t sequence) override { event.set(sequence); }
+  void translateTo(disruptor::support::LongEvent& event, int64_t sequence) override {
+    event.set(sequence);
+  }
 };
-} // namespace
+}  // namespace
 
 class BatchingTestFixture : public ::testing::TestWithParam<disruptor::dsl::ProducerType> {};
 
@@ -66,30 +69,30 @@ TEST_P(BatchingTestFixture, shouldBatch) {
   // Use runtime dispatch since producerType is not a compile-time constant
   if (producerType == disruptor::dsl::ProducerType::SINGLE) {
     disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::SINGLE, WS> d(
-        disruptor::support::LongEvent::FACTORY, 2048, threadFactory, waitStrategy);
+      disruptor::support::LongEvent::FACTORY, 2048, threadFactory, waitStrategy);
     d.handleEventsWith(handler1, handler2);
     auto buffer = d.start();
-    
+
     for (int i = 0; i < eventCount; ++i) {
       buffer->publishEvent(translator);
     }
-    
-    while (handler1.processed.load(std::memory_order_acquire) != eventCount - 1 ||
-           handler2.processed.load(std::memory_order_acquire) != eventCount - 1) {
+
+    while (handler1.processed.load(std::memory_order_acquire) != eventCount - 1
+           || handler2.processed.load(std::memory_order_acquire) != eventCount - 1) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
   } else {
     disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
-        disruptor::support::LongEvent::FACTORY, 2048, threadFactory, waitStrategy);
+      disruptor::support::LongEvent::FACTORY, 2048, threadFactory, waitStrategy);
     d.handleEventsWith(handler1, handler2);
     auto buffer = d.start();
-    
+
     for (int i = 0; i < eventCount; ++i) {
       buffer->publishEvent(translator);
     }
-    
-    while (handler1.processed.load(std::memory_order_acquire) != eventCount - 1 ||
-           handler2.processed.load(std::memory_order_acquire) != eventCount - 1) {
+
+    while (handler1.processed.load(std::memory_order_acquire) != eventCount - 1
+           || handler2.processed.load(std::memory_order_acquire) != eventCount - 1) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
   }
@@ -100,5 +103,7 @@ TEST_P(BatchingTestFixture, shouldBatch) {
   EXPECT_EQ(eventCount / 2, handler2.eventCount);
 }
 
-INSTANTIATE_TEST_SUITE_P(BatchingTest, BatchingTestFixture,
-                         ::testing::Values(disruptor::dsl::ProducerType::MULTI, disruptor::dsl::ProducerType::SINGLE));
+INSTANTIATE_TEST_SUITE_P(BatchingTest,
+                         BatchingTestFixture,
+                         ::testing::Values(disruptor::dsl::ProducerType::MULTI,
+                                           disruptor::dsl::ProducerType::SINGLE));

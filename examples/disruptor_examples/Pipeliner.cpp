@@ -21,14 +21,19 @@ struct PipelinerEvent {
   std::optional<std::string> result;
 
   struct Factory final : public disruptor::EventFactory<PipelinerEvent> {
-    PipelinerEvent newInstance() override { return PipelinerEvent(); }
+    PipelinerEvent newInstance() override {
+      return PipelinerEvent();
+    }
   };
-  static inline std::shared_ptr<disruptor::EventFactory<PipelinerEvent>> FACTORY = std::make_shared<Factory>();
+
+  static inline std::shared_ptr<disruptor::EventFactory<PipelinerEvent>> FACTORY =
+    std::make_shared<Factory>();
 };
 
 class ParallelHandler final : public disruptor::EventHandler<PipelinerEvent> {
 public:
-  ParallelHandler(int ordinal, int totalHandlers) : ordinal_(ordinal), totalHandlers_(totalHandlers) {}
+  ParallelHandler(int ordinal, int totalHandlers)
+    : ordinal_(ordinal), totalHandlers_(totalHandlers) {}
 
   void onEvent(PipelinerEvent& event, int64_t sequence, bool /*endOfBatch*/) override {
     if ((sequence % totalHandlers_) == ordinal_) {
@@ -45,22 +50,24 @@ class JoiningHandler final : public disruptor::EventHandler<PipelinerEvent> {
 public:
   void onEvent(PipelinerEvent& event, int64_t /*sequence*/, bool /*endOfBatch*/) override {
     if (event.input != lastEvent_ + 1 || !event.result.has_value()) {
-      std::cout << "Error: input=" << event.input << " last=" << lastEvent_ << " result="
-                << (event.result ? *event.result : std::string("null")) << "\n";
+      std::cout << "Error: input=" << event.input << " last=" << lastEvent_
+                << " result=" << (event.result ? *event.result : std::string("null")) << "\n";
       ++errors_;
     }
     lastEvent_ = event.input;
     event.result.reset();
   }
 
-  int errors() const { return errors_; }
+  int errors() const {
+    return errors_;
+  }
 
 private:
   int64_t lastEvent_{-1};
   int errors_{0};
 };
 
-} // namespace
+}  // namespace
 
 int main() {
   using WS = disruptor::BlockingWaitStrategy;
@@ -92,5 +99,3 @@ int main() {
   disruptor.shutdown(2000);
   return join.errors() == 0 ? 0 : 1;
 }
-
-

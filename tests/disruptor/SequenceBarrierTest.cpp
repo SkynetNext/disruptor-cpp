@@ -7,8 +7,8 @@
 #include "disruptor/Sequence.h"
 #include "disruptor/SequenceBarrier.h"
 #include "disruptor/util/Util.h"
-#include "tests/disruptor/support/StubEvent.h"
 #include "tests/disruptor/support/DummyEventProcessor.h"
+#include "tests/disruptor/support/StubEvent.h"
 #include "tests/disruptor/test_support/CountDownLatch.h"
 
 #include <memory>
@@ -28,7 +28,7 @@ void fillRingBuffer(RB& ringBuffer, int64_t expectedNumberMessages) {
 class CountDownLatchSequence final : public disruptor::Sequence {
 public:
   CountDownLatchSequence(int64_t initialValue, disruptor::test_support::CountDownLatch& latch)
-      : disruptor::Sequence(initialValue), latch_(&latch) {}
+    : disruptor::Sequence(initialValue), latch_(&latch) {}
 
   int64_t get() const noexcept override {
     latch_->countDown();
@@ -38,17 +38,17 @@ public:
 private:
   disruptor::test_support::CountDownLatch* latch_;
 };
-} // namespace
+}  // namespace
 
 class SequenceBarrierTestFixture : public ::testing::Test {
 protected:
   using Event = disruptor::support::StubEvent;
   using WS = disruptor::BusySpinWaitStrategy;
   using RB = disruptor::MultiProducerRingBuffer<Event, WS>;
-  
+
   WS ws;
   std::shared_ptr<RB> ringBuffer =
-      RB::createMultiProducer(disruptor::support::StubEvent::EVENT_FACTORY, 64, ws);
+    RB::createMultiProducer(disruptor::support::StubEvent::EVENT_FACTORY, 64, ws);
 
   SequenceBarrierTestFixture() {
     ringBuffer->addGatingSequences(noOp.getSequence());
@@ -121,7 +121,8 @@ TEST_F(SequenceBarrierTestFixture, shouldInterruptDuringBusySpin) {
   auto sequenceBarrier = ringBuffer->newBarrier(deps, 3);
 
   std::thread t([&] {
-    EXPECT_THROW((void)sequenceBarrier->waitFor(expectedNumberMessages - 1), disruptor::AlertException);
+    EXPECT_THROW((void)sequenceBarrier->waitFor(expectedNumberMessages - 1),
+                 disruptor::AlertException);
   });
 
   latch.await();

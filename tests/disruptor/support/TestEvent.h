@@ -8,15 +8,18 @@
 namespace disruptor::support {
 
 struct TestEvent {
-  std::string toString() const { return "Test Event"; }
+  std::string toString() const {
+    return "Test Event";
+  }
 
   struct Factory final : public ::disruptor::EventFactory<TestEvent> {
-    TestEvent newInstance() override { return TestEvent(); }
+    TestEvent newInstance() override {
+      return TestEvent();
+    }
   };
 
-  static inline std::shared_ptr<::disruptor::EventFactory<TestEvent>> EVENT_FACTORY = std::make_shared<Factory>();
+  static inline std::shared_ptr<::disruptor::EventFactory<TestEvent>> EVENT_FACTORY =
+    std::make_shared<Factory>();
 };
 
-} // namespace disruptor::support
-
-
+}  // namespace disruptor::support

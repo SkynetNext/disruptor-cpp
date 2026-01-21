@@ -15,32 +15,45 @@ namespace {
 class LatchEventHandler final : public disruptor::EventHandler<disruptor::support::StubEvent> {
 public:
   explicit LatchEventHandler(disruptor::test_support::CountDownLatch& latch) : latch_(&latch) {}
-  void onEvent(disruptor::support::StubEvent& /*event*/, int64_t /*sequence*/, bool /*endOfBatch*/) override {
+
+  void onEvent(disruptor::support::StubEvent& /*event*/,
+               int64_t /*sequence*/,
+               bool /*endOfBatch*/) override {
     latch_->countDown();
   }
+
 private:
   disruptor::test_support::CountDownLatch* latch_;
 };
 
 class ExceptionEventHandler final : public disruptor::EventHandler<disruptor::support::StubEvent> {
 public:
-  void onEvent(disruptor::support::StubEvent& /*event*/, int64_t /*sequence*/, bool /*endOfBatch*/) override {
+  void onEvent(disruptor::support::StubEvent& /*event*/,
+               int64_t /*sequence*/,
+               bool /*endOfBatch*/) override {
     throw std::runtime_error("boom");
   }
 };
 
-class LatchExceptionHandler final : public disruptor::ExceptionHandler<disruptor::support::StubEvent> {
+class LatchExceptionHandler final
+  : public disruptor::ExceptionHandler<disruptor::support::StubEvent> {
 public:
   explicit LatchExceptionHandler(disruptor::test_support::CountDownLatch& latch) : latch_(&latch) {}
-  void handleEventException(const std::exception& /*ex*/, int64_t /*sequence*/, disruptor::support::StubEvent* /*event*/) override {
+
+  void handleEventException(const std::exception& /*ex*/,
+                            int64_t /*sequence*/,
+                            disruptor::support::StubEvent* /*event*/) override {
     latch_->countDown();
   }
+
   void handleOnStartException(const std::exception& /*ex*/) override {}
+
   void handleOnShutdownException(const std::exception& /*ex*/) override {}
+
 private:
   disruptor::test_support::CountDownLatch* latch_;
 };
-} // namespace
+}  // namespace
 
 TEST(BatchEventProcessorTest, shouldCallMethodsInLifecycleOrderForBatch) {
   using Event = disruptor::support::StubEvent;

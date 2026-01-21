@@ -9,15 +9,16 @@ namespace disruptor::dsl::stubs {
 
 // This handler has an evil equals() that always returns true
 // to test that Disruptor tracks handlers by identity, not equality
-class EvilEqualsEventHandler final
-    : public disruptor::EventHandler<disruptor::support::TestEvent> {
+class EvilEqualsEventHandler final : public disruptor::EventHandler<disruptor::support::TestEvent> {
 public:
-  void onEvent(disruptor::support::TestEvent& /*entry*/, int64_t /*sequence*/,
+  void onEvent(disruptor::support::TestEvent& /*entry*/,
+               int64_t /*sequence*/,
                bool /*endOfBatch*/) override {}
 
   // Evil equals that always returns true
-  bool operator==(const EvilEqualsEventHandler& /*other*/) const { return true; }
+  bool operator==(const EvilEqualsEventHandler& /*other*/) const {
+    return true;
+  }
 };
 
-} // namespace disruptor::dsl::stubs
-
+}  // namespace disruptor::dsl::stubs

@@ -15,21 +15,24 @@ namespace disruptor_examples::longevent {
 template <typename SequencerT>
 class LongEventProducerWithTranslator {
 public:
-  explicit LongEventProducerWithTranslator(disruptor::RingBuffer<LongEvent, SequencerT>& ringBuffer) : ringBuffer_(&ringBuffer) {}
+  explicit LongEventProducerWithTranslator(disruptor::RingBuffer<LongEvent, SequencerT>& ringBuffer)
+    : ringBuffer_(&ringBuffer) {}
 
-  void onData(ByteBuffer& bb) { ringBuffer_->publishEvent(TRANSLATOR, bb); }
+  void onData(ByteBuffer& bb) {
+    ringBuffer_->publishEvent(TRANSLATOR, bb);
+  }
 
 private:
   disruptor::RingBuffer<LongEvent, SequencerT>* ringBuffer_;
 
   class Translator final : public disruptor::EventTranslatorOneArg<LongEvent, ByteBuffer> {
   public:
-    void translateTo(LongEvent& event, int64_t /*sequence*/, ByteBuffer bb) override { event.set(bb.getLong(0)); }
+    void translateTo(LongEvent& event, int64_t /*sequence*/, ByteBuffer bb) override {
+      event.set(bb.getLong(0));
+    }
   };
 
   static inline Translator TRANSLATOR{};
 };
 
-} // namespace disruptor_examples::longevent
-
-
+}  // namespace disruptor_examples::longevent

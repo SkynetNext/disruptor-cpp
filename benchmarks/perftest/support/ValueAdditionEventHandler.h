@@ -1,10 +1,11 @@
 #pragma once
 // 1:1 port of com.lmax.disruptor.support.ValueAdditionEventHandler
-// Source: reference/disruptor/src/perftest/java/com/lmax/disruptor/support/ValueAdditionEventHandler.java
+// Source:
+// reference/disruptor/src/perftest/java/com/lmax/disruptor/support/ValueAdditionEventHandler.java
 
+#include "ValueEvent.h"
 #include "disruptor/EventHandler.h"
 #include "disruptor/Sequence.h"
-#include "ValueEvent.h"
 
 #include <atomic>
 #include <cstdint>
@@ -14,10 +15,11 @@ namespace disruptor::bench::perftest::support {
 
 class ValueAdditionEventHandler : public disruptor::EventHandler<ValueEvent> {
 public:
-  ValueAdditionEventHandler()
-      : value_(0), batchesProcessed_(0), count_(0), latch_(nullptr) {}
+  ValueAdditionEventHandler() : value_(0), batchesProcessed_(0), count_(0), latch_(nullptr) {}
 
-  int64_t getValue() const { return value_.load(std::memory_order_acquire); }
+  int64_t getValue() const {
+    return value_.load(std::memory_order_acquire);
+  }
 
   int64_t getBatchesProcessed() const {
     return batchesProcessed_.load(std::memory_order_acquire);
@@ -30,8 +32,7 @@ public:
     batchesProcessed_.store(0, std::memory_order_release);
   }
 
-  void onEvent(ValueEvent& event, int64_t sequence,
-               bool endOfBatch) override {
+  void onEvent(ValueEvent& event, int64_t sequence, bool endOfBatch) override {
     // Read event value immediately (before any potential overwrite)
     // Java: value.set(value.get() + event.getValue());
     int64_t eventValue = event.getValue();
@@ -55,5 +56,4 @@ private:
   std::shared_ptr<std::atomic<bool>> latch_;
 };
 
-} // namespace disruptor::bench::perftest::support
-
+}  // namespace disruptor::bench::perftest::support

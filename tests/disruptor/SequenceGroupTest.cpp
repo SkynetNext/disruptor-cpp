@@ -97,8 +97,7 @@ TEST(SequenceGroupTest, shouldAddWhileRunning) {
   using WS = disruptor::BusySpinWaitStrategy;
   using RB = disruptor::SingleProducerRingBuffer<Event, WS>;
   WS ws;
-  auto ringBuffer = RB::createSingleProducer(
-      disruptor::support::TestEvent::EVENT_FACTORY, 32, ws);
+  auto ringBuffer = RB::createSingleProducer(disruptor::support::TestEvent::EVENT_FACTORY, 32, ws);
 
   disruptor::Sequence sequenceThree(3);
   disruptor::Sequence sequenceSeven(7);

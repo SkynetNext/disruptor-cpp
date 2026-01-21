@@ -9,18 +9,22 @@
 namespace {
 static constexpr int BUFFER_SIZE = 32;
 
-class EventPublisherTestTranslator final : public disruptor::EventTranslator<disruptor::support::LongEvent> {
+class EventPublisherTestTranslator final
+  : public disruptor::EventTranslator<disruptor::support::LongEvent> {
 public:
-  void translateTo(disruptor::support::LongEvent& event, int64_t sequence) override { event.set(sequence + 29); }
+  void translateTo(disruptor::support::LongEvent& event, int64_t sequence) override {
+    event.set(sequence + 29);
+  }
 };
-} // namespace
+}  // namespace
 
 TEST(EventPublisherTest, shouldPublishEvent) {
   using Event = disruptor::support::LongEvent;
   using WS = disruptor::BusySpinWaitStrategy;
   using RB = disruptor::MultiProducerRingBuffer<Event, WS>;
   WS ws;
-  auto ringBuffer = RB::createMultiProducer(disruptor::support::LongEvent::FACTORY, BUFFER_SIZE, ws);
+  auto ringBuffer =
+    RB::createMultiProducer(disruptor::support::LongEvent::FACTORY, BUFFER_SIZE, ws);
 
   disruptor::NoOpEventProcessor<Event, RB> noop(*ringBuffer);
   ringBuffer->addGatingSequences(noop.getSequence());
@@ -38,7 +42,8 @@ TEST(EventPublisherTest, shouldTryPublishEvent) {
   using WS = disruptor::BusySpinWaitStrategy;
   using RB = disruptor::MultiProducerRingBuffer<Event, WS>;
   WS ws;
-  auto ringBuffer = RB::createMultiProducer(disruptor::support::LongEvent::FACTORY, BUFFER_SIZE, ws);
+  auto ringBuffer =
+    RB::createMultiProducer(disruptor::support::LongEvent::FACTORY, BUFFER_SIZE, ws);
 
   disruptor::Sequence gating;
   ringBuffer->addGatingSequences(gating);

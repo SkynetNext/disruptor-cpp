@@ -25,13 +25,15 @@ TEST(UtilTest, shouldReturnMinimumSequence) {
 
 TEST(UtilTest, shouldReturnLongMaxWhenNoEventProcessors) {
   std::vector<disruptor::Sequence*> sequences{};
-  EXPECT_EQ(std::numeric_limits<int64_t>::max(), disruptor::util::Util::getMinimumSequence(sequences));
+  EXPECT_EQ(std::numeric_limits<int64_t>::max(),
+            disruptor::util::Util::getMinimumSequence(sequences));
 }
 
 TEST(UtilTest, shouldThrowErrorIfValuePassedToLog2FunctionIsNotPositive) {
   EXPECT_THROW((void)disruptor::util::Util::log2(0), std::invalid_argument);
   EXPECT_THROW((void)disruptor::util::Util::log2(-1), std::invalid_argument);
-  EXPECT_THROW((void)disruptor::util::Util::log2(std::numeric_limits<int>::min()), std::invalid_argument);
+  EXPECT_THROW((void)disruptor::util::Util::log2(std::numeric_limits<int>::min()),
+               std::invalid_argument);
 }
 
 TEST(UtilTest, shouldCalculateCorrectlyIntegerFlooredLog2) {

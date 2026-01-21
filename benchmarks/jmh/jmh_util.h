@@ -17,7 +17,9 @@ struct SimpleEvent {
 };
 
 struct SimpleEventFactory final : public disruptor::EventFactory<SimpleEvent> {
-  SimpleEvent newInstance() override { return SimpleEvent(); }
+  SimpleEvent newInstance() override {
+    return SimpleEvent();
+  }
 };
 
 // Equivalent of com.lmax.disruptor.util.SimpleEventHandler (consumes via Blackhole).
@@ -29,9 +31,9 @@ struct ConsumeHandler final : public disruptor::EventHandler<SimpleEvent> {
 
 // Equivalent of setValue(0)
 struct SetZeroTranslator final : public disruptor::EventTranslator<SimpleEvent> {
-  void translateTo(SimpleEvent& event, int64_t /*sequence*/) override { event.value = 0; }
+  void translateTo(SimpleEvent& event, int64_t /*sequence*/) override {
+    event.value = 0;
+  }
 };
 
-} // namespace disruptor::bench::jmh
-
-
+}  // namespace disruptor::bench::jmh
