@@ -5,10 +5,8 @@
 #include "disruptor/BlockingWaitStrategy.h"
 #include "disruptor/EventHandler.h"
 #include "disruptor/EventTranslatorOneArg.h"
-#include "disruptor/EventTranslatorVararg.h"
 #include "disruptor/FatalExceptionHandler.h"
 #include "disruptor/RewindableEventHandler.h"
-#include "disruptor/SimpleBatchRewindStrategy.h"
 #include "disruptor/TimeoutException.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/dsl/EventProcessorFactory.h"
@@ -239,6 +237,7 @@ TEST(DisruptorTest, shouldSupportMultipleCustomProcessorsAsDependencies) {
 
   // Keep processors alive for the lifetime of the test
   std::vector<std::shared_ptr<disruptor::EventProcessor>> keptProcessors = {processor1, processor2};
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::EventProcessor* processors[] = {processor1.get(), processor2.get()};
   d->handleEventsWith(processors, 2);
   d->after(processors, 2).handleEventsWith(handlerWithBarrier);
@@ -481,11 +480,13 @@ TEST(DisruptorTest, shouldAddEventProcessorsAfterPublishing) {
   auto barrier1 = ringBuffer.newBarrier();
   auto b1 = builder1.build(ringBuffer, *barrier1, handler1);
 
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::Sequence* seqs1[] = {&b1->getSequence()};
   auto barrier2 = ringBuffer.newBarrier(seqs1, 1);
   disruptor::BatchEventProcessorBuilder builder2;
   auto b2 = builder2.build(ringBuffer, *barrier2, handler2);
 
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::Sequence* seqs2[] = {&b2->getSequence()};
   auto barrier3 = ringBuffer.newBarrier(seqs2, 1);
   disruptor::BatchEventProcessorBuilder builder3;
@@ -504,6 +505,7 @@ TEST(DisruptorTest, shouldAddEventProcessorsAfterPublishing) {
 
   // Keep processors alive for the lifetime of the test
   std::vector<std::shared_ptr<disruptor::EventProcessor>> keptProcessors = {b1, b2, b3};
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::EventProcessor* processors[] = {b1.get(), b2.get(), b3.get()};
   d->handleEventsWith(processors, 3);
 
@@ -691,6 +693,7 @@ TEST(DisruptorTest, shouldSupportAddingCustomEventProcessorWithFactory) {
 
   // Keep processor alive for the lifetime of the test
   std::shared_ptr<disruptor::EventProcessor> keptProcessor = b1;
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::EventProcessor* processors[] = {b1.get()};
   d.handleEventsWith(processors, 1).thenFactories(b2);
 
@@ -719,6 +722,7 @@ TEST(DisruptorTest, shouldAllowSpecifyingSpecificEventProcessorsToWaitFor) {
   disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(countDownLatch);
 
   d.handleEventsWith(handler1, handler2);
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::EventHandlerIdentity* handlers[] = {&handler1, &handler2};
   d.after(handlers, 2).handleEventsWith(handlerWithBarrier);
 
@@ -749,6 +753,7 @@ TEST(DisruptorTest, shouldWaitOnAllProducersJoinedByAnd) {
 
   d.handleEventsWith(handler1);
   auto handler2Group = d.handleEventsWith(handler2);
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::EventHandlerIdentity* handlers1[] = {&handler1};
   auto handler1Group = d.after(handlers1, 1);
   handler1Group.and_(handler2Group).handleEventsWith(handlerWithBarrier);
@@ -774,6 +779,7 @@ TEST(DisruptorTest, shouldThrowExceptionIfHandlerIsNotAlreadyConsuming) {
   disruptor::dsl::stubs::DelayedEventHandler handler;
   disruptor::dsl::stubs::DelayedEventHandler handler2;
 
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::EventHandlerIdentity* handlers[] = {&handler};
   EXPECT_THROW(d.after(handlers, 1).handleEventsWith(handler2), std::invalid_argument);
 
@@ -796,6 +802,7 @@ TEST(DisruptorTest, shouldTrackEventHandlersByIdentityNotEquality) {
 
   // handler2 == handler1 (evil equals) but it hasn't yet been registered so
   // should throw exception.
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::EventHandlerIdentity* handlers2[] = {&handler2};
   EXPECT_THROW(d.after(handlers2, 1), std::invalid_argument);
 
@@ -1045,6 +1052,7 @@ TEST(DisruptorTest, shouldSupportCustomProcessorsAsDependencies) {
 
   // Keep processor alive for the lifetime of the test
   std::shared_ptr<disruptor::EventProcessor> keptProcessor = processor;
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::EventProcessor* processors[] = {processor.get()};
   d.handleEventsWith(processors, 1).then(handlerWithBarrier);
 
@@ -1073,12 +1081,14 @@ TEST(DisruptorTest, shouldSupportHandlersAsDependenciesToCustomProcessors) {
   disruptor::test_support::CountDownLatch countDownLatch(2);
   disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(countDownLatch);
 
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::EventHandlerIdentity* handlers3[] = {&delayedEventHandler};
   auto sequenceBarrier = d.after(handlers3, 1).asSequenceBarrier();
   disruptor::BatchEventProcessorBuilder builder;
   auto processor = builder.build(ringBuffer, *sequenceBarrier, handlerWithBarrier);
   // Keep processor alive for the lifetime of the test
   std::shared_ptr<disruptor::EventProcessor> keptProcessor = processor;
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::EventProcessor* processors[] = {processor.get()};
   d.handleEventsWith(processors, 1);
 
@@ -1108,6 +1118,7 @@ TEST(DisruptorTest, shouldSupportCustomProcessorsAndHandlersAsDependencies) {
   disruptor::test_support::CountDownLatch countDownLatch(2);
   disruptor::dsl::stubs::EventHandlerStub<Event> handlerWithBarrier(countDownLatch);
 
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::EventHandlerIdentity* handlers4[] = {&delayedEventHandler1};
   auto sequenceBarrier = d.after(handlers4, 1).asSequenceBarrier();
   disruptor::BatchEventProcessorBuilder builder;
@@ -1115,6 +1126,7 @@ TEST(DisruptorTest, shouldSupportCustomProcessorsAndHandlersAsDependencies) {
 
   // Keep processor alive for the lifetime of the test
   std::shared_ptr<disruptor::EventProcessor> keptProcessor = processor;
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   disruptor::EventProcessor* processors[] = {processor.get()};
   d.after(handlers4, 1).and_(processors, 1).handleEventsWith(handlerWithBarrier);
 
@@ -1161,22 +1173,22 @@ TEST(DisruptorTest, shouldTrackRemainingCapacity) {
   disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS> d(
     disruptor::support::TestEvent::EVENT_FACTORY, 1024, tf, ws);
 
-  int64_t remainingCapacity = -1;
+  std::atomic<int64_t> remainingCapacity(-1);
 
   class CapacityTrackingHandler final : public disruptor::EventHandler<Event> {
   public:
     explicit CapacityTrackingHandler(
       disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS>& d,
-      int64_t& capacity)
+      std::atomic<int64_t>& capacity)
       : d_(&d), capacity_(&capacity) {}
 
     void onEvent(Event& /*event*/, int64_t /*sequence*/, bool /*endOfBatch*/) override {
-      *capacity_ = d_->getRingBuffer().remainingCapacity();
+      capacity_->store(d_->getRingBuffer().remainingCapacity(), std::memory_order_release);
     }
 
   private:
     disruptor::dsl::Disruptor<Event, disruptor::dsl::ProducerType::MULTI, WS>* d_;
-    int64_t* capacity_;
+    std::atomic<int64_t>* capacity_;
   };
 
   CapacityTrackingHandler eventHandler(d, remainingCapacity);
@@ -1186,11 +1198,11 @@ TEST(DisruptorTest, shouldTrackRemainingCapacity) {
   d.publishEvent(translator);
   d.start();
 
-  while (remainingCapacity == -1) {
+  while (remainingCapacity.load(std::memory_order_acquire) == -1) {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
-  EXPECT_EQ(1023, remainingCapacity);
+  EXPECT_EQ(1023, remainingCapacity.load(std::memory_order_acquire));
   EXPECT_EQ(1024, d.getRingBuffer().remainingCapacity());
 
   d.halt();
