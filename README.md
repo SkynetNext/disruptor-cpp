@@ -23,8 +23,8 @@ cmake --build .
 | Test | C++ | Java | **C++/Java** |
 |------|-----|------|--------------|
 | **SPSC** | 310.6 Mops/sec | 138.9 Mops/sec | **2.24x** ⬆️ |
-| **MPSC (单事件)** | 51.4 Mops/sec | 36.1 Mops/sec | **1.42x** ⬆️ |
-| **MPSC (批量)** | 291.6 Mops/sec | 208.1 Mops/sec | **1.40x** ⬆️ |
+| **MPSC (Single Event)** | 51.4 Mops/sec | 36.1 Mops/sec | **1.42x** ⬆️ |
+| **MPSC (Batch)** | 291.6 Mops/sec | 208.1 Mops/sec | **1.40x** ⬆️ |
 | **SPSC End-to-End** | 260 Mops/sec | 155 Mops/sec | **1.68x** ⬆️ |
 
 ### Latency (SPSC)

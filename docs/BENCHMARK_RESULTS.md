@@ -29,8 +29,8 @@
 | Test | C++ | Java | **C++/Java Ratio** |
 |------|-----|------|-------------------|
 | **SPSC** | 310.6 Mops/sec | 138.9 Mops/sec | **2.24x** ⬆️ |
-| **MPSC (单事件)** | 51.4 Mops/sec | 36.1 Mops/sec | **1.42x** ⬆️ |
-| **MPSC (批量)** | 291.6 Mops/sec | 208.1 Mops/sec | **1.40x** ⬆️ |
+| **MPSC (Single Event)** | 51.4 Mops/sec | 36.1 Mops/sec | **1.42x** ⬆️ |
+| **MPSC (Batch)** | 291.6 Mops/sec | 208.1 Mops/sec | **1.40x** ⬆️ |
 
 ### Latency Comparison (SPSC Only)
 
@@ -62,8 +62,8 @@
 | Benchmark | Throughput | Iterations | Notes |
 |-----------|------------|------------|-------|
 | **SPSC** | 310.6 Mops/sec | 3 | Latency: 3.22 ns/op (for reference only) |
-| **MPSC (单事件)** | 51.4 Mops/sec | 3 | 4 threads, items_per_second: 51.4493M/s (mean) |
-| **MPSC (批量)** | 291.6 Mops/sec | 3 | 4 threads, items_per_second: 291.591M/s (mean) |
+| **MPSC (Single Event)** | 51.4 Mops/sec | 3 | 4 threads, items_per_second: 51.4493M/s (mean) |
+| **MPSC (Batch)** | 291.6 Mops/sec | 3 | 4 threads, items_per_second: 291.591M/s (mean) |
 
 **SPSC Details:**
 - Latency: 3.22 ns/op (mean), 3.22 ns/op (median)
@@ -71,13 +71,13 @@
 - sp_wrap_wait_entries: 2.073k
 - sp_wrap_wait_entries_per_op: 953.613n
 
-**MPSC (单事件) Details:**
+**MPSC (Single Event) Details:**
 - Throughput: 51.4 Mops/sec (4 threads total)
 - items_per_second: 51.4493M/s (mean), 51.5944M/s (median)
 - Threads: 4
 - Note: Throughput measurement using `SetItemsProcessed()` (aligned with Java `Mode.Throughput`)
 
-**MPSC (批量) Details:**
+**MPSC (Batch) Details:**
 - Throughput: 291.6 Mops/sec (4 threads total)
 - items_per_second: 291.591M/s (mean), 296.214M/s (median)
 - Threads: 4
@@ -88,8 +88,8 @@
 | Benchmark | Mode | Score | Error | Units | Iterations |
 |-----------|------|-------|-------|-------|------------|
 | **SPSC** | avgt | 7.197 | ±0.456 | ns/op | 3 |
-| **MPSC (单事件)** | thrpt | 36075.522 | ±2336.050 | ops/ms | 3 |
-| **MPSC (批量)** | thrpt | 208051.272 | ±7114.622 | ops/ms | 3 |
+| **MPSC (Single Event)** | thrpt | 36075.522 | ±2336.050 | ops/ms | 3 |
+| **MPSC (Batch)** | thrpt | 208051.272 | ±7114.622 | ops/ms | 3 |
 
 **SPSC Details:**
 - min: 7.177 ns/op
@@ -97,14 +97,14 @@
 - stdev: 0.025
 - CI (99.9%): [6.742, 7.653]
 
-**MPSC (单事件) Details:**
+**MPSC (Single Event) Details:**
 - min: 35961.517 ops/ms
 - max: 36214.060 ops/ms
 - stdev: 128.047
 - CI (99.9%): [33739.473, 38411.572]
 - Threads: 4
 
-**MPSC (批量) Details:**
+**MPSC (Batch) Details:**
 - min: 207601.079 ops/ms
 - max: 208285.118 ops/ms
 - stdev: 389.976
