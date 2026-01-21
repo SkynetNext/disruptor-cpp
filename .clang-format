@@ -1,70 +1,204 @@
 ---
+# Modern clang-format configuration (2025)
+# Based on Chromium style with enhancements for C++26
+# References:
+# - Chromium C++ Style Guide: https://chromium.googlesource.com/chromium/src/+/main/styleguide/c++/c++.md
+# - LLVM Style Guide: https://llvm.org/docs/CodingStandards.html
+# - clang-format options: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
 Language: Cpp
-BasedOnStyle: Google
-AccessModifierOffset: -3
+BasedOnStyle: Chromium
+Standard: Latest  # Supports C++26
+
+# Indentation
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+ContinuationIndentWidth: 2
+PPIndentWidth: 2
+
+# Line length
+ColumnLimit: 100
+
+# Line endings and file structure
+LineEnding: LF
+InsertNewlineAtEOF: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+
+# Indentation rules
+IndentCaseLabels: true
+IndentCaseBlocks: false
+IndentGotoLabels: false
+IndentPPDirectives: AfterHash
+IndentWrappedFunctionNames: false
+
+# Alignment options (modern approach - enabled but conservative)
 AlignAfterOpenBracket: Align
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
 AlignEscapedNewlines: Left
-AlignOperands: true
+AlignOperands: Align
 AlignTrailingComments: true
+
+# Consecutive alignment (modern feature, use carefully)
+AlignConsecutiveAssignments:
+    Enabled: false  # Can cause diff noise, disable by default
+    AcrossEmptyLines: false
+    AcrossComments: false
+    AlignCompound: false
+    PadOperators: false
+
+AlignConsecutiveDeclarations:
+    Enabled: false  # Can cause diff noise, disable by default
+    AcrossEmptyLines: false
+    AcrossComments: false
+
+AlignConsecutiveMacros:
+    Enabled: true
+    AcrossEmptyLines: false
+    AcrossComments: false
+
+# Array alignment
+AlignArrayOfStructures: Right
+
+# Argument and parameter packing
+BinPackArguments: true
+BinPackParameters: false
+AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: false
-AllowShortBlocksOnASingleLine: false
+
+# Short statements (conservative - improves diff readability)
+AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: false
+AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: false
+
+# Return type and template formatting
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: Yes
-BinPackArguments: false
-BinPackParameters: false
+
+# Binary operators
 BreakBeforeBinaryOperators: NonAssignment
+
+# Braces (Attach style - more compact)
 BreakBeforeBraces: Attach
+BraceWrapping:
+    AfterCaseLabel: false
+    AfterControlStatement: Never
+    AfterEnum: false
+    AfterExternBlock: false
+    AfterFunction: false
+    AfterStruct: false
+    AfterUnion: false
+    BeforeCatch: false
+    BeforeElse: false
+    BeforeWhile: false
+    IndentBraces: false
+    SplitEmptyFunction: false
+    SplitEmptyRecord: false
+    SplitEmptyNamespace: false
+
+# Other breaks
 BreakBeforeInheritanceComma: false
 BreakInheritanceList: BeforeColon
 BreakBeforeTernaryOperators: true
-BreakConstructorInitializersBeforeComma: true
 BreakConstructorInitializers: BeforeColon
-BreakStringLiterals: true
-ColumnLimit: 100
+BreakConstructorInitializersBeforeComma: true
+BreakStringLiterals: false  # Modern: don't break strings unnecessarily
+
+# Namespaces
 CompactNamespaces: false
-ConstructorInitializerAllOnOneLineOrOnePerLine: true
-ConstructorInitializerIndentWidth: 4
-ContinuationIndentWidth: 4
-Cpp11BracedListStyle: true
-DerivePointerAlignment: false
-DisableFormat: false
-FixNamespaceComments: true
-IncludeBlocks: Preserve
-IndentCaseLabels: true
-IndentPPDirectives: None
-IndentWidth: 4
-IndentWrappedFunctionNames: false
-KeepEmptyLinesAtTheStartOfBlocks: false
-MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
+
+# Constructor initializers
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerIndentWidth: 2
+
+# Pointer and reference alignment (Google/Chromium style)
 PointerAlignment: Left
+DerivePointerAlignment: false
+
+# Qualifier alignment (modern C++ feature)
+# Note: QualifierOrder only works with QualifierAlignment: Custom
+# Using Leave to preserve existing qualifier positions
+QualifierAlignment: Leave
+
+# Comments
 ReflowComments: true
+SpacesBeforeTrailingComments: 2
+
+# Includes
 SortIncludes: true
+IncludeBlocks: Preserve
+IncludeCategories:
+    - Regex: '^<.*\.h>'
+      Priority: 1
+      SortPriority: 0
+    - Regex: '^<.*'
+      Priority: 2
+      SortPriority: 0
+    - Regex: '^".*\.h"'
+      Priority: 3
+      SortPriority: 0
+    - Regex: '^".*"'
+      Priority: 4
+      SortPriority: 0
+
+# Using declarations
 SortUsingDeclarations: true
+
+# Spaces
 SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: true
+SpaceAroundPointerQualifiers: Default
 SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
 SpaceBeforeCpp11BracedList: false
 SpaceBeforeCtorInitializerColon: true
 SpaceBeforeInheritanceColon: true
 SpaceBeforeParens: ControlStatements
 SpaceBeforeRangeBasedForLoopColon: true
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
 SpaceInEmptyParentheses: false
-SpacesBeforeTrailingComments: 2
-SpacesInAngles: false
-SpacesInContainerLiterals: false
+SpacesInAngles: Never
 SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
+SpacesInLineCommentPrefix:
+    Minimum: 1
+    Maximum: -1
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-Standard: Cpp11
-TabWidth: 4
-UseTab: Never
-PackConstructorInitializers: NextLine
+
+# Modern C++ features
+Cpp11BracedListStyle: true
+FixNamespaceComments: true
+RemoveParentheses: ReturnStatement
+RemoveSemicolon: false
+InsertBraces: false
 SeparateDefinitionBlocks: Always
+
+# Attributes
+BreakAfterAttributes: Never
+AttributeMacros: []
+
+# Penalties (fine-tuning line breaks)
+PenaltyBreakAssignment: 2
+PenaltyBreakBeforeFirstCallParameter: 1
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 120
+PenaltyBreakOpenParenthesis: 0
+PenaltyBreakString: 1000
+PenaltyExcessCharacter: 100
+PenaltyIndentedWhitespace: 0
+PenaltyReturnTypeOnItsOwnLine: 60
+
+# Access modifiers
+AccessModifierOffset: -2
+
+# Disable formatting (if needed, use // clang-format off/on)
+DisableFormat: false

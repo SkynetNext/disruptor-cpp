@@ -22,14 +22,14 @@ namespace disruptor {
 template <typename WaitStrategyT>
 class MultiProducerSequencer final : public AbstractSequencer<WaitStrategyT> {
 public:
-  MultiProducerSequencer(int bufferSize, WaitStrategyT &waitStrategy)
-      : AbstractSequencer<WaitStrategyT>(bufferSize, waitStrategy),
-        gatingSequenceCache_(SEQUENCER_INITIAL_CURSOR_VALUE),
-        availableBuffer_(static_cast<size_t>(bufferSize)),
-        indexMask_(bufferSize - 1),
-        indexShift_(disruptor::util::Util::log2(bufferSize)),
-        gatingSequencesCache_(nullptr) {
-    for (auto &a : availableBuffer_) {
+  MultiProducerSequencer(int bufferSize, WaitStrategyT& waitStrategy)
+    : AbstractSequencer<WaitStrategyT>(bufferSize, waitStrategy)
+    , gatingSequenceCache_(SEQUENCER_INITIAL_CURSOR_VALUE)
+    , availableBuffer_(static_cast<size_t>(bufferSize))
+    , indexMask_(bufferSize - 1)
+    , indexShift_(disruptor::util::Util::log2(bufferSize))
+    , gatingSequencesCache_(nullptr) {
+    for (auto& a : availableBuffer_) {
       a.store(-1, std::memory_order_relaxed);
     }
   }
@@ -37,13 +37,16 @@ public:
   bool hasAvailableCapacity(int requiredCapacity) {
     auto snap = this->gatingSequences_.load(std::memory_order_acquire);
     // Java passes gatingSequences array + cursor.get()
-    return hasAvailableCapacity(snap.get(), requiredCapacity,
-                                this->cursor_.get());
+    return hasAvailableCapacity(snap.get(), requiredCapacity, this->cursor_.get());
   }
 
-  void claim(int64_t sequence) { this->cursor_.set(sequence); }
+  void claim(int64_t sequence) {
+    this->cursor_.set(sequence);
+  }
 
-  int64_t next() { return next(1); }
+  int64_t next() {
+    return next(1);
+  }
 
   int64_t next(int n) {
     if (n < 1 || n > this->bufferSize_) {
@@ -69,8 +72,8 @@ public:
     return nextSequence;
   }
 
-  std::expected<int64_t, Error> tryNext() { 
-    return tryNext(1); 
+  std::expected<int64_t, Error> tryNext() {
+    return tryNext(1);
   }
 
   std::expected<int64_t, Error> tryNext(int n) {
@@ -118,14 +121,11 @@ public:
   bool isAvailable(int64_t sequence) {
     int index = calculateIndex(sequence);
     int flag = calculateAvailabilityFlag(sequence);
-    return availableBuffer_[static_cast<size_t>(index)].load(
-               std::memory_order_acquire) == flag;
+    return availableBuffer_[static_cast<size_t>(index)].load(std::memory_order_acquire) == flag;
   }
 
-  int64_t getHighestPublishedSequence(int64_t lowerBound,
-                                      int64_t availableSequence) {
-    for (int64_t sequence = lowerBound; sequence <= availableSequence;
-         ++sequence) {
+  int64_t getHighestPublishedSequence(int64_t lowerBound, int64_t availableSequence) {
+    for (int64_t sequence = lowerBound; sequence <= availableSequence; ++sequence) {
       if (!isAvailable(sequence)) {
         return sequence - 1;
       }
@@ -133,25 +133,22 @@ public:
     return availableSequence;
   }
 
-  std::shared_ptr<ProcessingSequenceBarrier<
-      MultiProducerSequencer<WaitStrategyT>, WaitStrategyT>>
-  newBarrier(Sequence *const *sequencesToTrack, int count) {
-    return std::make_shared<ProcessingSequenceBarrier<
-        MultiProducerSequencer<WaitStrategyT>, WaitStrategyT>>(
-        *this, *this->waitStrategy_, this->cursor_, sequencesToTrack, count);
+  std::shared_ptr<ProcessingSequenceBarrier<MultiProducerSequencer<WaitStrategyT>, WaitStrategyT>>
+  newBarrier(Sequence* const* sequencesToTrack, int count) {
+    return std::make_shared<
+      ProcessingSequenceBarrier<MultiProducerSequencer<WaitStrategyT>, WaitStrategyT>>(
+      *this, *this->waitStrategy_, this->cursor_, sequencesToTrack, count);
   }
 
   // Override to invalidate cache when gating sequences change
-  void addGatingSequences(Sequence *const *gatingSequences, int count) {
-    AbstractSequencer<WaitStrategyT>::addGatingSequences(gatingSequences,
-                                                         count);
-    gatingSequencesCache_ = nullptr; // Invalidate cache
+  void addGatingSequences(Sequence* const* gatingSequences, int count) {
+    AbstractSequencer<WaitStrategyT>::addGatingSequences(gatingSequences, count);
+    gatingSequencesCache_ = nullptr;  // Invalidate cache
   }
 
-  bool removeGatingSequence(Sequence &sequence) {
-    bool result =
-        AbstractSequencer<WaitStrategyT>::removeGatingSequence(sequence);
-    gatingSequencesCache_ = nullptr; // Invalidate cache
+  bool removeGatingSequence(Sequence& sequence) {
+    bool result = AbstractSequencer<WaitStrategyT>::removeGatingSequence(sequence);
+    gatingSequencesCache_ = nullptr;  // Invalidate cache
     return result;
   }
 
@@ -164,19 +161,18 @@ private:
   // shared_ptr operations. This is safe because gatingSequences_ is only
   // updated during add/remove (not on hot path), and we refresh the cache when
   // it's null.
-  mutable const std::vector<Sequence *> *gatingSequencesCache_;
+  mutable const std::vector<Sequence*>* gatingSequencesCache_;
 
-  bool hasAvailableCapacity(const std::vector<Sequence *> *gatingSequences,
-                            int requiredCapacity, int64_t cursorValue) {
+  bool hasAvailableCapacity(const std::vector<Sequence*>* gatingSequences,
+                            int requiredCapacity,
+                            int64_t cursorValue) {
     int64_t wrapPoint = (cursorValue + requiredCapacity) - this->bufferSize_;
     int64_t cachedGatingSequence = gatingSequenceCache_.get();
 
-    if (wrapPoint > cachedGatingSequence ||
-        cachedGatingSequence > cursorValue) {
-      int64_t minSequence = gatingSequences
-                                ? disruptor::util::Util::getMinimumSequence(
-                                      *gatingSequences, cursorValue)
-                                : cursorValue;
+    if (wrapPoint > cachedGatingSequence || cachedGatingSequence > cursorValue) {
+      int64_t minSequence =
+        gatingSequences ? disruptor::util::Util::getMinimumSequence(*gatingSequences, cursorValue)
+                        : cursorValue;
       gatingSequenceCache_.set(minSequence);
 
       if (wrapPoint > minSequence) {
@@ -188,18 +184,17 @@ private:
   }
 
   void setAvailable(int64_t sequence) {
-    setAvailableBufferValue(calculateIndex(sequence),
-                            calculateAvailabilityFlag(sequence));
+    setAvailableBufferValue(calculateIndex(sequence), calculateAvailabilityFlag(sequence));
   }
 
   void setAvailableBufferValue(int index, int flag) {
-    availableBuffer_[static_cast<size_t>(index)].store(
-        flag, std::memory_order_release);
+    availableBuffer_[static_cast<size_t>(index)].store(flag, std::memory_order_release);
   }
 
   int calculateAvailabilityFlag(int64_t sequence) const {
     return static_cast<int>(sequence >> indexShift_);
   }
+
   int calculateIndex(int64_t sequence) const {
     return static_cast<int>(sequence) & indexMask_;
   }
@@ -209,7 +204,7 @@ private:
     // hot path. gatingSequences_ is updated rarely (only when consumers are
     // added/removed), but accessed frequently in next(). Use cached pointer for
     // fast path.
-    auto *cached = gatingSequencesCache_;
+    auto* cached = gatingSequencesCache_;
     if (!cached) {
       // Fallback: reload if cache is null (initialization or after
       // modifications)
@@ -224,4 +219,4 @@ private:
   }
 };
 
-} // namespace disruptor
+}  // namespace disruptor

@@ -13,7 +13,7 @@ template <typename T>
 class AggregateEventHandler final : public EventHandler<T> {
 public:
   explicit AggregateEventHandler(std::vector<EventHandler<T>*> eventHandlers)
-      : eventHandlers_(std::move(eventHandlers)) {}
+    : eventHandlers_(std::move(eventHandlers)) {}
 
   void onEvent(T& event, int64_t sequence, bool endOfBatch) override {
     for (auto* h : eventHandlers_) {
@@ -25,13 +25,15 @@ public:
 
   void onStart() override {
     for (auto* h : eventHandlers_) {
-      if (h) h->onStart();
+      if (h)
+        h->onStart();
     }
   }
 
   void onShutdown() override {
     for (auto* h : eventHandlers_) {
-      if (h) h->onShutdown();
+      if (h)
+        h->onShutdown();
     }
   }
 
@@ -39,4 +41,4 @@ private:
   std::vector<EventHandler<T>*> eventHandlers_;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

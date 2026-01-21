@@ -17,6 +17,4 @@ private:
   InsufficientCapacityException() : std::runtime_error("InsufficientCapacityException") {}
 };
 
-} // namespace disruptor
-
-
+}  // namespace disruptor

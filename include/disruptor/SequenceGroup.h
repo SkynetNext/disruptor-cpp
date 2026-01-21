@@ -28,13 +28,17 @@ public:
     return disruptor::util::Util::getMinimumSequence(*snap);
   }
 
-  int64_t getCursor() const override { return get(); }
+  int64_t getCursor() const override {
+    return get();
+  }
 
   void set(int64_t value) noexcept override {
     auto snap = sequences_.load(std::memory_order_acquire);
-    if (!snap) return;
+    if (!snap)
+      return;
     for (auto* s : *snap) {
-      if (s) s->set(value);
+      if (s)
+        s->set(value);
     }
   }
 
@@ -64,4 +68,4 @@ private:
   std::atomic<std::shared_ptr<std::vector<Sequence*>>> sequences_;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

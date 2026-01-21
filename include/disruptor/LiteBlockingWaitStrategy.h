@@ -7,8 +7,8 @@
 #include "util/ThreadHints.h"
 
 #include <atomic>
-#include <cstdint>
 #include <condition_variable>
+#include <cstdint>
 #include <mutex>
 
 namespace disruptor {
@@ -58,4 +58,4 @@ private:
   std::atomic<bool> signalNeeded_{false};
 };
 
-} // namespace disruptor
+}  // namespace disruptor

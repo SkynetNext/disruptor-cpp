@@ -26,4 +26,4 @@ public:
   }
 };
 
-} // namespace disruptor
+}  // namespace disruptor

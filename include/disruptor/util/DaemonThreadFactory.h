@@ -27,4 +27,4 @@ private:
   DaemonThreadFactory() = default;
 };
 
-} // namespace disruptor::util
+}  // namespace disruptor::util

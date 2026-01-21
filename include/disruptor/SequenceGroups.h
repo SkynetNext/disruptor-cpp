@@ -43,10 +43,8 @@ public:
         }
         updatedSequences->push_back(seq);
       }
-    } while (!updater.compare_exchange_weak(currentSequences,
-                                           updatedSequences,
-                                           std::memory_order_acq_rel,
-                                           std::memory_order_acquire));
+    } while (!updater.compare_exchange_weak(currentSequences, updatedSequences,
+                                            std::memory_order_acq_rel, std::memory_order_acquire));
 
     cursorSequence = cursor.getCursor();
     for (int i = 0; i < count; ++i) {
@@ -90,13 +88,11 @@ public:
           newSequences->push_back(s);
         }
       }
-    } while (!updater.compare_exchange_weak(oldSequences,
-                                           newSequences,
-                                           std::memory_order_acq_rel,
-                                           std::memory_order_acquire));
+    } while (!updater.compare_exchange_weak(oldSequences, newSequences, std::memory_order_acq_rel,
+                                            std::memory_order_acquire));
 
     return numToRemove != 0;
   }
 };
 
-} // namespace disruptor
+}  // namespace disruptor

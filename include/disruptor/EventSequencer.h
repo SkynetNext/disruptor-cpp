@@ -13,4 +13,4 @@ public:
   ~EventSequencer() override = default;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

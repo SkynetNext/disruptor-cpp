@@ -20,6 +20,4 @@ public:
   virtual std::thread newThread(std::function<void()> r) = 0;
 };
 
-} // namespace disruptor::dsl
-
-
+}  // namespace disruptor::dsl

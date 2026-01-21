@@ -14,4 +14,4 @@
 
 #include <cstdint>
 
-namespace disruptor {} // namespace disruptor
+namespace disruptor {}  // namespace disruptor

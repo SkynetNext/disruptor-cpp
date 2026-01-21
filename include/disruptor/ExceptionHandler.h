@@ -18,4 +18,4 @@ public:
   virtual void handleOnShutdownException(const std::exception& ex) = 0;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

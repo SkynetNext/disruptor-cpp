@@ -15,4 +15,4 @@ public:
   virtual void translateTo(T& event, int64_t sequence, const std::vector<void*>& args) = 0;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

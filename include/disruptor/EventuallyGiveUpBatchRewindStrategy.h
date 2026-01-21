@@ -1,6 +1,7 @@
 #pragma once
 // 1:1 port of com.lmax.disruptor.EventuallyGiveUpBatchRewindStrategy
-// Source: reference/disruptor/src/main/java/com/lmax/disruptor/EventuallyGiveUpBatchRewindStrategy.java
+// Source:
+// reference/disruptor/src/main/java/com/lmax/disruptor/EventuallyGiveUpBatchRewindStrategy.java
 
 #include "BatchRewindStrategy.h"
 #include "RewindAction.h"
@@ -24,4 +25,4 @@ private:
   int64_t maxAttempts_;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

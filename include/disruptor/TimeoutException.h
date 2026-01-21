@@ -7,7 +7,9 @@
 namespace disruptor {
 class TimeoutException final : public std::exception {
 public:
-  const char* what() const noexcept override { return "TimeoutException"; }
+  const char* what() const noexcept override {
+    return "TimeoutException";
+  }
 
   // Java: public static final TimeoutException INSTANCE = new TimeoutException();
   static const TimeoutException& INSTANCE() {
@@ -18,6 +20,4 @@ public:
 private:
   TimeoutException() = default;
 };
-} // namespace disruptor
-
-
+}  // namespace disruptor

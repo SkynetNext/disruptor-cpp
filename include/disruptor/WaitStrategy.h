@@ -18,9 +18,9 @@
 namespace disruptor {
 
 class Sequence;
-class SequenceBarrier; // Legacy type; will be removed after full template
-                       // migration.
+class SequenceBarrier;  // Legacy type; will be removed after full template
+                        // migration.
 
 // This file intentionally does NOT define a base class.
 
-} // namespace disruptor
+}  // namespace disruptor

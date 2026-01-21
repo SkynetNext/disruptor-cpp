@@ -14,4 +14,4 @@ public:
   void onEvent(T& event, int64_t sequence, bool endOfBatch) override = 0;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

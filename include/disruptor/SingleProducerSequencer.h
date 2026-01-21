@@ -22,11 +22,12 @@ namespace disruptor {
 // Diagnostic counters used by benchmarks to detect producer backpressure (wrap
 // wait) in SPSC. These are intentionally relaxed atomics; they are not part of
 // the Disruptor API contract.
-inline std::atomic<uint64_t> &sp_wrap_wait_entries() {
+inline std::atomic<uint64_t>& sp_wrap_wait_entries() {
   static std::atomic<uint64_t> v{0};
   return v;
 }
-inline std::atomic<uint64_t> &sp_wrap_wait_loops() {
+
+inline std::atomic<uint64_t>& sp_wrap_wait_loops() {
   static std::atomic<uint64_t> v{0};
   return v;
 }
@@ -41,35 +42,38 @@ namespace detail {
 template <typename WaitStrategyT>
 struct SpSequencerPad : public AbstractSequencer<WaitStrategyT> {
   std::byte p1[112]{};
-  SpSequencerPad(int bufferSize, WaitStrategyT &waitStrategy)
-      : AbstractSequencer<WaitStrategyT>(bufferSize, waitStrategy) {}
+
+  SpSequencerPad(int bufferSize, WaitStrategyT& waitStrategy)
+    : AbstractSequencer<WaitStrategyT>(bufferSize, waitStrategy) {}
 };
 
 template <typename WaitStrategyT>
 struct SpSequencerFields : public SpSequencerPad<WaitStrategyT> {
   int64_t nextValue_;
   int64_t cachedValue_;
-  SpSequencerFields(int bufferSize, WaitStrategyT &waitStrategy)
-      : SpSequencerPad<WaitStrategyT>(bufferSize, waitStrategy),
-        nextValue_(Sequence::INITIAL_VALUE),
-        cachedValue_(Sequence::INITIAL_VALUE) {}
+
+  SpSequencerFields(int bufferSize, WaitStrategyT& waitStrategy)
+    : SpSequencerPad<WaitStrategyT>(bufferSize, waitStrategy)
+    , nextValue_(Sequence::INITIAL_VALUE)
+    , cachedValue_(Sequence::INITIAL_VALUE) {}
 };
 
-} // namespace detail
+}  // namespace detail
 
 template <typename WaitStrategyT>
-class SingleProducerSequencer final
-    : public detail::SpSequencerFields<WaitStrategyT> {
+class SingleProducerSequencer final : public detail::SpSequencerFields<WaitStrategyT> {
 public:
-  SingleProducerSequencer(int bufferSize, WaitStrategyT &waitStrategy)
-      : detail::SpSequencerFields<WaitStrategyT>(bufferSize, waitStrategy),
-        gatingSequencesCache_(nullptr) {}
+  SingleProducerSequencer(int bufferSize, WaitStrategyT& waitStrategy)
+    : detail::SpSequencerFields<WaitStrategyT>(bufferSize, waitStrategy)
+    , gatingSequencesCache_(nullptr) {}
 
   bool hasAvailableCapacity(int requiredCapacity) {
     return hasAvailableCapacity(requiredCapacity, false);
   }
 
-  int64_t next() { return next(1); }
+  int64_t next() {
+    return next(1);
+  }
 
   int64_t next(int n) {
     // Java: assert sameThread() when assertions enabled. We keep a debug check.
@@ -77,8 +81,7 @@ public:
     // SPSC performance and Java only performs this when assertions are enabled.
 #ifndef NDEBUG
     if (!sameThread()) {
-      throw std::runtime_error(
-          "Accessed by two threads - use ProducerType.MULTI!");
+      throw std::runtime_error("Accessed by two threads - use ProducerType.MULTI!");
     }
 #endif
     if (n < 1 || n > this->bufferSize_) {
@@ -92,7 +95,7 @@ public:
 
     if (wrapPoint > cachedGatingSequence || cachedGatingSequence > nextValue) {
       sp_wrap_wait_entries().fetch_add(1, std::memory_order_relaxed);
-      this->cursor_.setVolatile(nextValue); // StoreLoad fence
+      this->cursor_.setVolatile(nextValue);  // StoreLoad fence
 
       int64_t minSequence;
       while (wrapPoint > (minSequence = minimumSequence(nextValue))) {
@@ -110,8 +113,8 @@ public:
     return nextSequence;
   }
 
-  std::expected<int64_t, Error> tryNext() { 
-    return tryNext(1); 
+  std::expected<int64_t, Error> tryNext() {
+    return tryNext(1);
   }
 
   std::expected<int64_t, Error> tryNext(int n) {
@@ -134,7 +137,9 @@ public:
     return this->getBufferSize() - (produced - consumed);
   }
 
-  void claim(int64_t sequence) { this->nextValue_ = sequence; }
+  void claim(int64_t sequence) {
+    this->nextValue_ = sequence;
+  }
 
   void publish(int64_t sequence) {
     this->cursor_.set(sequence);
@@ -150,34 +155,29 @@ public:
 
   bool isAvailable(int64_t sequence) {
     const int64_t currentSequence = this->cursor_.get();
-    return sequence <= currentSequence &&
-           sequence > currentSequence - this->bufferSize_;
+    return sequence <= currentSequence && sequence > currentSequence - this->bufferSize_;
   }
 
-  int64_t getHighestPublishedSequence(int64_t /*lowerBound*/,
-                                      int64_t availableSequence) {
+  int64_t getHighestPublishedSequence(int64_t /*lowerBound*/, int64_t availableSequence) {
     return availableSequence;
   }
 
-  std::shared_ptr<ProcessingSequenceBarrier<
-      SingleProducerSequencer<WaitStrategyT>, WaitStrategyT>>
-  newBarrier(Sequence *const *sequencesToTrack, int count) {
-    return std::make_shared<ProcessingSequenceBarrier<
-        SingleProducerSequencer<WaitStrategyT>, WaitStrategyT>>(
-        *this, *this->waitStrategy_, this->cursor_, sequencesToTrack, count);
+  std::shared_ptr<ProcessingSequenceBarrier<SingleProducerSequencer<WaitStrategyT>, WaitStrategyT>>
+  newBarrier(Sequence* const* sequencesToTrack, int count) {
+    return std::make_shared<
+      ProcessingSequenceBarrier<SingleProducerSequencer<WaitStrategyT>, WaitStrategyT>>(
+      *this, *this->waitStrategy_, this->cursor_, sequencesToTrack, count);
   }
 
   // Override to invalidate cache when gating sequences change
-  void addGatingSequences(Sequence *const *gatingSequences, int count) {
-    AbstractSequencer<WaitStrategyT>::addGatingSequences(gatingSequences,
-                                                         count);
-    gatingSequencesCache_ = nullptr; // Invalidate cache
+  void addGatingSequences(Sequence* const* gatingSequences, int count) {
+    AbstractSequencer<WaitStrategyT>::addGatingSequences(gatingSequences, count);
+    gatingSequencesCache_ = nullptr;  // Invalidate cache
   }
 
-  bool removeGatingSequence(Sequence &sequence) {
-    bool result =
-        AbstractSequencer<WaitStrategyT>::removeGatingSequence(sequence);
-    gatingSequencesCache_ = nullptr; // Invalidate cache
+  bool removeGatingSequence(Sequence& sequence) {
+    bool result = AbstractSequencer<WaitStrategyT>::removeGatingSequence(sequence);
+    gatingSequencesCache_ = nullptr;  // Invalidate cache
     return result;
   }
 
@@ -186,10 +186,10 @@ private:
   // shared_ptr operations. This is safe because gatingSequences_ is only
   // updated during add/remove (not on hot path), and we refresh the cache when
   // it's null.
-  mutable const std::vector<Sequence *> *gatingSequencesCache_;
+  mutable const std::vector<Sequence*>* gatingSequencesCache_;
 
   // Trailing padding to mirror Java's extra padding in the concrete class.
-  std::byte p2_[112 - sizeof(const std::vector<Sequence *> *)]{};
+  std::byte p2_[112 - sizeof(const std::vector<Sequence*>*)]{};
 
   bool hasAvailableCapacity(int requiredCapacity, bool doStore) {
     int64_t nextValue = this->nextValue_;
@@ -198,7 +198,7 @@ private:
 
     if (wrapPoint > cachedGatingSequence || cachedGatingSequence > nextValue) {
       if (doStore) {
-        this->cursor_.setVolatile(nextValue); // StoreLoad fence
+        this->cursor_.setVolatile(nextValue);  // StoreLoad fence
       }
 
       int64_t minSequence = minimumSequence(nextValue);
@@ -217,7 +217,7 @@ private:
     // hot path. gatingSequences_ is updated rarely (only when consumers are
     // added/removed), but accessed frequently in next(). Use cached pointer for
     // fast path.
-    auto *cached = gatingSequencesCache_;
+    auto* cached = gatingSequencesCache_;
     if (!cached) {
       // Fallback: reload if cache is null (initialization or after
       // modifications)
@@ -237,8 +237,7 @@ private:
     return true;
 #else
     static std::mutex m;
-    static std::unordered_map<const SingleProducerSequencer *, std::thread::id>
-        producers;
+    static std::unordered_map<const SingleProducerSequencer*, std::thread::id> producers;
     std::lock_guard<std::mutex> lock(m);
     const auto tid = std::this_thread::get_id();
     auto it = producers.find(this);
@@ -251,4 +250,4 @@ private:
   }
 };
 
-} // namespace disruptor
+}  // namespace disruptor

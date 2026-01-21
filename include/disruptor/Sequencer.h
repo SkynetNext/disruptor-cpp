@@ -33,7 +33,6 @@ struct Sequencer {
   static constexpr int64_t INITIAL_CURSOR_VALUE = -1;
 };
 
-inline constexpr int64_t SEQUENCER_INITIAL_CURSOR_VALUE =
-    Sequencer::INITIAL_CURSOR_VALUE;
+inline constexpr int64_t SEQUENCER_INITIAL_CURSOR_VALUE = Sequencer::INITIAL_CURSOR_VALUE;
 
-} // namespace disruptor
+}  // namespace disruptor

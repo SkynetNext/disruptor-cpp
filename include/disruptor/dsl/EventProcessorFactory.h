@@ -10,13 +10,13 @@
 
 namespace disruptor::dsl {
 
-template <typename T, typename RingBufferT> class EventProcessorFactory {
+template <typename T, typename RingBufferT>
+class EventProcessorFactory {
 public:
   virtual ~EventProcessorFactory() = default;
 
   virtual std::shared_ptr<EventProcessor>
-  createEventProcessor(RingBufferT &ringBuffer,
-                       Sequence *const *barrierSequences, int count) = 0;
+  createEventProcessor(RingBufferT& ringBuffer, Sequence* const* barrierSequences, int count) = 0;
 };
 
-} // namespace disruptor::dsl
+}  // namespace disruptor::dsl

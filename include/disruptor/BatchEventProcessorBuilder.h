@@ -25,33 +25,27 @@ public:
   }
 
   template <typename T, typename BarrierT>
-  std::shared_ptr<BatchEventProcessor<T, BarrierT>> build(DataProvider<T>& dataProvider,
-                                                          BarrierT& sequenceBarrier,
-                                                          EventHandler<T>& eventHandler) {
-    auto processor = std::make_shared<BatchEventProcessor<T, BarrierT>>(dataProvider,
-                                                              sequenceBarrier,
-                                                              eventHandler,
-                                                              maxBatchSize_,
-                                                              nullptr);
+  std::shared_ptr<BatchEventProcessor<T, BarrierT>>
+  build(DataProvider<T>& dataProvider, BarrierT& sequenceBarrier, EventHandler<T>& eventHandler) {
+    auto processor = std::make_shared<BatchEventProcessor<T, BarrierT>>(
+      dataProvider, sequenceBarrier, eventHandler, maxBatchSize_, nullptr);
     eventHandler.setSequenceCallback(processor->getSequence());
     return processor;
   }
 
   template <typename T, typename BarrierT>
-  std::shared_ptr<BatchEventProcessor<T, BarrierT>> build(DataProvider<T>& dataProvider,
-                                                          BarrierT& sequenceBarrier,
-                                                          RewindableEventHandler<T>& rewindableEventHandler,
-                                                          BatchRewindStrategy& batchRewindStrategy) {
+  std::shared_ptr<BatchEventProcessor<T, BarrierT>>
+  build(DataProvider<T>& dataProvider,
+        BarrierT& sequenceBarrier,
+        RewindableEventHandler<T>& rewindableEventHandler,
+        BatchRewindStrategy& batchRewindStrategy) {
     // Java: NPE if batchRewindStrategy null (we take ref so never null).
-    return std::make_shared<BatchEventProcessor<T, BarrierT>>(dataProvider,
-                                                    sequenceBarrier,
-                                                    rewindableEventHandler,
-                                                    maxBatchSize_,
-                                                    &batchRewindStrategy);
+    return std::make_shared<BatchEventProcessor<T, BarrierT>>(
+      dataProvider, sequenceBarrier, rewindableEventHandler, maxBatchSize_, &batchRewindStrategy);
   }
 
 private:
   int maxBatchSize_ = std::numeric_limits<int>::max();
 };
 
-} // namespace disruptor
+}  // namespace disruptor

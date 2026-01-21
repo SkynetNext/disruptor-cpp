@@ -11,6 +11,4 @@ public:
   virtual int64_t getCursor() const = 0;
 };
 
-} // namespace disruptor
-
-
+}  // namespace disruptor

@@ -17,14 +17,19 @@ namespace disruptor {
 template <typename T, typename RingBufferT>
 class NoOpEventProcessor final : public EventProcessor {
 public:
-  explicit NoOpEventProcessor(RingBufferT& sequencer)
-      : sequence_(sequencer), running_(false) {}
+  explicit NoOpEventProcessor(RingBufferT& sequencer) : sequence_(sequencer), running_(false) {}
 
-  Sequence& getSequence() override { return sequence_; }
+  Sequence& getSequence() override {
+    return sequence_;
+  }
 
-  void halt() override { running_.store(false, std::memory_order_release); }
+  void halt() override {
+    running_.store(false, std::memory_order_release);
+  }
 
-  bool isRunning() override { return running_.load(std::memory_order_acquire); }
+  bool isRunning() override {
+    return running_.load(std::memory_order_acquire);
+  }
 
   void run() override {
     bool expected = false;
@@ -38,11 +43,13 @@ private:
   class SequencerFollowingSequence final : public Sequence {
   public:
     explicit SequencerFollowingSequence(RingBufferT& sequencer)
-        : Sequence(SEQUENCER_INITIAL_CURSOR_VALUE), sequencer_(&sequencer) {
+      : Sequence(SEQUENCER_INITIAL_CURSOR_VALUE), sequencer_(&sequencer) {
       static_assert(!std::is_reference_v<RingBufferT>, "RingBufferT must not be a reference type");
     }
 
-    int64_t get() const noexcept override { return sequencer_->getCursor(); }
+    int64_t get() const noexcept override {
+      return sequencer_->getCursor();
+    }
 
   private:
     std::remove_reference_t<RingBufferT>* sequencer_;
@@ -52,4 +59,4 @@ private:
   std::atomic<bool> running_;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

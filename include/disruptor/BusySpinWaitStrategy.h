@@ -6,7 +6,7 @@
 #include "WaitStrategy.h"
 
 #if defined(_MSC_VER)
-#include <immintrin.h>
+#  include <immintrin.h>
 #endif
 
 namespace disruptor {
@@ -16,8 +16,10 @@ public:
   static constexpr bool kIsBlockingStrategy = false;
 
   template <typename Barrier>
-  int64_t waitFor(int64_t sequence, const Sequence & /*cursor*/,
-                  const Sequence &dependentSequence, Barrier &barrier) {
+  int64_t waitFor(int64_t sequence,
+                  const Sequence& /*cursor*/,
+                  const Sequence& dependentSequence,
+                  Barrier& barrier) {
     int64_t available;
     while ((available = dependentSequence.get()) < sequence) {
       barrier.checkAlert();
@@ -33,4 +35,4 @@ public:
   void signalAllWhenBlocking() {}
 };
 
-} // namespace disruptor
+}  // namespace disruptor

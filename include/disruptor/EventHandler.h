@@ -21,4 +21,4 @@ public:
   virtual void setSequenceCallback(Sequence& /*sequenceCallback*/) {}
 };
 
-} // namespace disruptor
+}  // namespace disruptor

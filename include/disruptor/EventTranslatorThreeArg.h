@@ -13,4 +13,4 @@ public:
   virtual void translateTo(T& event, int64_t sequence, A arg0, B arg1, C arg2) = 0;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

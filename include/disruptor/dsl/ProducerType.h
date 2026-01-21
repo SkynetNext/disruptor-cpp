@@ -1,4 +1,5 @@
 #pragma once
+
 // 1:1 port of com.lmax.disruptor.dsl.ProducerType
 // Source: reference/disruptor/src/main/java/com/lmax/disruptor/dsl/ProducerType.java
 
@@ -12,6 +13,4 @@ enum class ProducerType {
   MULTI
 };
 
-} // namespace disruptor::dsl
-
-
+}  // namespace disruptor::dsl

@@ -26,10 +26,10 @@ public:
                             Sequence& cursorSequence,
                             Sequence* const* dependentSequences,
                             int dependentCount)
-      : waitStrategy_(&waitStrategy),
-        alerted_(false),
-        cursorSequence_(&cursorSequence),
-        sequencer_(&sequencer) {
+    : waitStrategy_(&waitStrategy)
+    , alerted_(false)
+    , cursorSequence_(&cursorSequence)
+    , sequencer_(&sequencer) {
     if (dependentCount == 0) {
       dependentSequence_ = &cursorSequence;
     } else {
@@ -42,7 +42,7 @@ public:
     checkAlert();
 
     int64_t availableSequence =
-        waitStrategy_->waitFor(sequence, *cursorSequence_, *dependentSequence_, *this);
+      waitStrategy_->waitFor(sequence, *cursorSequence_, *dependentSequence_, *this);
 
     if (availableSequence < sequence) {
       return availableSequence;
@@ -51,16 +51,22 @@ public:
     return sequencer_->getHighestPublishedSequence(sequence, availableSequence);
   }
 
-  int64_t getCursor() const { return dependentSequence_->get(); }
+  int64_t getCursor() const {
+    return dependentSequence_->get();
+  }
 
-  bool isAlerted() const { return alerted_.load(std::memory_order_acquire); }
+  bool isAlerted() const {
+    return alerted_.load(std::memory_order_acquire);
+  }
 
   void alert() {
     alerted_.store(true, std::memory_order_release);
     waitStrategy_->signalAllWhenBlocking();
   }
 
-  void clearAlert() { alerted_.store(false, std::memory_order_release); }
+  void clearAlert() {
+    alerted_.store(false, std::memory_order_release);
+  }
 
   void checkAlert() {
     if (isAlerted()) {
@@ -79,4 +85,4 @@ private:
   std::unique_ptr<FixedSequenceGroup> fixedGroup_;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

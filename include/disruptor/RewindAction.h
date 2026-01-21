@@ -1,4 +1,5 @@
 #pragma once
+
 // 1:1 port of com.lmax.disruptor.RewindAction
 // Source: reference/disruptor/src/main/java/com/lmax/disruptor/RewindAction.java
 
@@ -9,4 +10,4 @@ enum class RewindAction {
   THROW,
 };
 
-} // namespace disruptor
+}  // namespace disruptor

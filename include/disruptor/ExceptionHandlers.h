@@ -17,9 +17,10 @@ public:
   template <typename T>
   static std::shared_ptr<ExceptionHandler<T>> defaultHandler() {
     // Java holder idiom -> function-local static.
-    static std::shared_ptr<ExceptionHandler<T>> handler = std::make_shared<FatalExceptionHandler<T>>();
+    static std::shared_ptr<ExceptionHandler<T>> handler =
+      std::make_shared<FatalExceptionHandler<T>>();
     return handler;
   }
 };
 
-} // namespace disruptor
+}  // namespace disruptor

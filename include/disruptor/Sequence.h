@@ -28,7 +28,9 @@ public:
   static constexpr int64_t INITIAL_VALUE = -1;
 
   Sequence() noexcept : value_(INITIAL_VALUE) {}
+
   explicit Sequence(int64_t initial) noexcept : value_(initial) {}
+
   virtual ~Sequence() = default;
 
   // Java: long value = this.value; VarHandle.acquireFence(); return value;
@@ -39,7 +41,7 @@ public:
   virtual int64_t get() const {
     int64_t value = value_.load(std::memory_order_relaxed);
     std::atomic_thread_fence(std::memory_order_acquire);
-    DISRUPTOR_TSAN_ACQUIRE(const_cast<std::atomic<int64_t> *>(&value_));
+    DISRUPTOR_TSAN_ACQUIRE(const_cast<std::atomic<int64_t>*>(&value_));
     return value;
   }
 
@@ -66,8 +68,7 @@ public:
   }
 
   virtual bool compareAndSet(int64_t expected, int64_t desired) {
-    return value_.compare_exchange_weak(expected, desired,
-                                        std::memory_order_acq_rel,
+    return value_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel,
                                         std::memory_order_acquire);
   }
 
@@ -103,4 +104,4 @@ private:
   std::atomic<int64_t> value_;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

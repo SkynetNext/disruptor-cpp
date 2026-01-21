@@ -15,8 +15,7 @@ namespace disruptor {
 class FixedSequenceGroup final : public Sequence {
 public:
   // Java copies the array; we store pointers and treat them as identity.
-  FixedSequenceGroup(Sequence* const* sequences, int count)
-        {
+  FixedSequenceGroup(Sequence* const* sequences, int count) {
     sequences_.reserve(static_cast<size_t>(count));
     for (int i = 0; i < count; ++i) {
       sequences_.push_back(sequences[i]);
@@ -27,7 +26,9 @@ public:
     return disruptor::util::Util::getMinimumSequence(sequences_);
   }
 
-  std::string toString() const { return "FixedSequenceGroup{...}"; }
+  std::string toString() const {
+    return "FixedSequenceGroup{...}";
+  }
 
   void set(int64_t /*value*/) override {
     throw std::runtime_error("UnsupportedOperationException");
@@ -49,4 +50,4 @@ private:
   std::vector<Sequence*> sequences_;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

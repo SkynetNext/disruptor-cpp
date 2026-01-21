@@ -3,10 +3,10 @@
 // Source: reference/disruptor/src/main/java/com/lmax/disruptor/util/ThreadHints.java
 
 #if defined(_M_X64) || defined(_M_IX86) || defined(__x86_64__) || defined(__i386__)
-#include <immintrin.h> // _mm_pause
+#  include <immintrin.h>  // _mm_pause
 #elif !defined(__aarch64__)
 // Only include <thread> for platforms that need std::this_thread::yield()
-#include <thread>
+#  include <thread>
 #endif
 
 namespace disruptor::util {
@@ -33,4 +33,4 @@ public:
   }
 };
 
-} // namespace disruptor::util
+}  // namespace disruptor::util

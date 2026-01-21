@@ -13,7 +13,6 @@
 #include <cstdint>
 #include <mutex>
 
-
 namespace disruptor {
 
 class LiteTimeoutBlockingWaitStrategy final {
@@ -21,11 +20,13 @@ public:
   static constexpr bool kIsBlockingStrategy = true;
 
   explicit LiteTimeoutBlockingWaitStrategy(int64_t timeoutInNanos)
-      : timeoutInNanos_(timeoutInNanos) {}
+    : timeoutInNanos_(timeoutInNanos) {}
 
   template <typename Barrier>
-  int64_t waitFor(int64_t sequence, const Sequence &cursorSequence,
-                  const Sequence &dependentSequence, Barrier &barrier) {
+  int64_t waitFor(int64_t sequence,
+                  const Sequence& cursorSequence,
+                  const Sequence& dependentSequence,
+                  Barrier& barrier) {
     int64_t nanos = timeoutInNanos_;
 
     int64_t availableSequence;
@@ -61,4 +62,4 @@ private:
   int64_t timeoutInNanos_;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

@@ -38,13 +38,13 @@
  */
 
 // Disruptor core (1:1 Java port headers)
-#include "disruptor/RingBuffer.h"        // IWYU pragma: export
-#include "disruptor/Sequence.h"          // IWYU pragma: export
-#include "disruptor/SequenceBarrier.h"   // IWYU pragma: export
-#include "disruptor/WaitStrategy.h"      // IWYU pragma: export
-#include "disruptor/BusySpinWaitStrategy.h" // IWYU pragma: export
-#include "disruptor/BlockingWaitStrategy.h" // IWYU pragma: export
-#include "disruptor/BatchEventProcessor.h"  // IWYU pragma: export
+#include "disruptor/BatchEventProcessor.h"   // IWYU pragma: export
+#include "disruptor/BlockingWaitStrategy.h"  // IWYU pragma: export
+#include "disruptor/BusySpinWaitStrategy.h"  // IWYU pragma: export
+#include "disruptor/RingBuffer.h"            // IWYU pragma: export
+#include "disruptor/Sequence.h"              // IWYU pragma: export
+#include "disruptor/SequenceBarrier.h"       // IWYU pragma: export
+#include "disruptor/WaitStrategy.h"          // IWYU pragma: export
 
 // DSL
 #include "disruptor/dsl/Disruptor.h"     // IWYU pragma: export
@@ -97,4 +97,4 @@ namespace disruptor {
  * - Event sourcing and CQRS patterns
  */
 
-} // namespace disruptor
+}  // namespace disruptor

@@ -18,8 +18,10 @@ public:
   static constexpr bool kIsBlockingStrategy = true;
 
   template <typename Barrier>
-  int64_t waitFor(int64_t sequence, const Sequence &cursorSequence,
-                  const Sequence &dependentSequence, Barrier &barrier) {
+  int64_t waitFor(int64_t sequence,
+                  const Sequence& cursorSequence,
+                  const Sequence& dependentSequence,
+                  Barrier& barrier) {
     int64_t availableSequence;
     if (cursorSequence.get() < sequence) {
       std::unique_lock<std::mutex> lock(mutex_);
@@ -43,12 +45,17 @@ public:
   }
 
   // Public accessors for WaitSpinningHelper (matches Java reflection access)
-  std::mutex &getMutex() { return mutex_; }
-  std::condition_variable &getConditionVariable() { return cv_; }
+  std::mutex& getMutex() {
+    return mutex_;
+  }
+
+  std::condition_variable& getConditionVariable() {
+    return cv_;
+  }
 
 private:
   std::mutex mutex_;
   std::condition_variable cv_;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

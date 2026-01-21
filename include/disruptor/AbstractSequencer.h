@@ -20,20 +20,24 @@
 
 namespace disruptor {
 
-template <typename T> class DataProvider;
-template <typename T, typename SequencerT> class EventPoller;
+template <typename T>
+class DataProvider;
+template <typename T, typename SequencerT>
+class EventPoller;
 
 // Java uses AtomicReferenceFieldUpdater over a volatile Sequence[] for
 // gatingSequences. C++ port uses an atomic shared_ptr snapshot updated via CAS
 // (see SequenceGroups).
 //
 // Template version: WaitStrategy is stored by value and statically dispatched.
-template <typename WaitStrategyT> class AbstractSequencer : public Cursored {
+template <typename WaitStrategyT>
+class AbstractSequencer : public Cursored {
 public:
-  explicit AbstractSequencer(int bufferSize, WaitStrategyT &waitStrategy)
-      : bufferSize_(bufferSize), waitStrategy_(&waitStrategy),
-        cursor_(Sequencer::INITIAL_CURSOR_VALUE),
-        gatingSequences_(std::make_shared<std::vector<Sequence *>>()) {
+  explicit AbstractSequencer(int bufferSize, WaitStrategyT& waitStrategy)
+    : bufferSize_(bufferSize)
+    , waitStrategy_(&waitStrategy)
+    , cursor_(Sequencer::INITIAL_CURSOR_VALUE)
+    , gatingSequences_(std::make_shared<std::vector<Sequence*>>()) {
     if (bufferSize < 1) {
       throw std::invalid_argument("bufferSize must not be less than 1");
     }
@@ -42,18 +46,27 @@ public:
     }
   }
 
-  int64_t getCursor() const override { return cursor_.get(); }
-  int getBufferSize() const { return bufferSize_; }
-
-  Sequence &cursorSequence() { return cursor_; }
-  const Sequence &cursorSequence() const { return cursor_; }
-
-  void addGatingSequences(Sequence *const *gatingSequences, int count) {
-    SequenceGroups::addSequences(*this, gatingSequences_, *this,
-                                 gatingSequences, count);
+  int64_t getCursor() const override {
+    return cursor_.get();
   }
 
-  bool removeGatingSequence(Sequence &sequence) {
+  int getBufferSize() const {
+    return bufferSize_;
+  }
+
+  Sequence& cursorSequence() {
+    return cursor_;
+  }
+
+  const Sequence& cursorSequence() const {
+    return cursor_;
+  }
+
+  void addGatingSequences(Sequence* const* gatingSequences, int count) {
+    SequenceGroups::addSequences(*this, gatingSequences_, *this, gatingSequences, count);
+  }
+
+  bool removeGatingSequence(Sequence& sequence) {
     return SequenceGroups::removeSequence(*this, gatingSequences_, sequence);
   }
 
@@ -70,19 +83,24 @@ public:
   // getHighestPublishedSequence()).
 
   std::string toString() const {
-    return std::string("AbstractSequencer{") +
-           "waitStrategy=" + "..., cursor=..., gatingSequences=...}";
+    return std::string("AbstractSequencer{")
+           + "waitStrategy=" + "..., cursor=..., gatingSequences=...}";
   }
 
   // Public accessor for waitStrategy (needed for WaitSpinningHelper, matches Java reflection access)
-  WaitStrategyT &getWaitStrategy() { return *waitStrategy_; }
-  const WaitStrategyT &getWaitStrategy() const { return *waitStrategy_; }
+  WaitStrategyT& getWaitStrategy() {
+    return *waitStrategy_;
+  }
+
+  const WaitStrategyT& getWaitStrategy() const {
+    return *waitStrategy_;
+  }
 
 protected:
   int bufferSize_;
-  WaitStrategyT *waitStrategy_;
+  WaitStrategyT* waitStrategy_;
   Sequence cursor_;
-  std::atomic<std::shared_ptr<std::vector<Sequence *>>> gatingSequences_;
+  std::atomic<std::shared_ptr<std::vector<Sequence*>>> gatingSequences_;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

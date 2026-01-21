@@ -10,15 +10,21 @@ namespace disruptor::dsl {
 template <typename T>
 class ExceptionHandlerWrapper final : public ExceptionHandler<T> {
 public:
-  void switchTo(ExceptionHandler<T>& exceptionHandler) { delegate_ = &exceptionHandler; }
+  void switchTo(ExceptionHandler<T>& exceptionHandler) {
+    delegate_ = &exceptionHandler;
+  }
 
   void handleEventException(const std::exception& ex, int64_t sequence, T* event) override {
     getExceptionHandler().handleEventException(ex, sequence, event);
   }
 
-  void handleOnStartException(const std::exception& ex) override { getExceptionHandler().handleOnStartException(ex); }
+  void handleOnStartException(const std::exception& ex) override {
+    getExceptionHandler().handleOnStartException(ex);
+  }
 
-  void handleOnShutdownException(const std::exception& ex) override { getExceptionHandler().handleOnShutdownException(ex); }
+  void handleOnShutdownException(const std::exception& ex) override {
+    getExceptionHandler().handleOnShutdownException(ex);
+  }
 
 private:
   ExceptionHandler<T>* delegate_{nullptr};
@@ -29,6 +35,4 @@ private:
   }
 };
 
-} // namespace disruptor::dsl
-
-
+}  // namespace disruptor::dsl

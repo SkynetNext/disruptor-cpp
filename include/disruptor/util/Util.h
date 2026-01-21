@@ -53,7 +53,8 @@ public:
     return minimumSequence;
   }
 
-  static std::vector<disruptor::Sequence*> getSequencesFor(disruptor::EventProcessor* const* processors, int count) {
+  static std::vector<disruptor::Sequence*>
+  getSequencesFor(disruptor::EventProcessor* const* processors, int count) {
     std::vector<disruptor::Sequence*> sequences;
     sequences.reserve(static_cast<size_t>(count));
     for (int i = 0; i < count; ++i) {
@@ -68,8 +69,8 @@ public:
     return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
   }
 
-  static std::vector<disruptor::Sequence*> getSequencesFor(
-      const std::vector<disruptor::EventProcessor*>& processors) {
+  static std::vector<disruptor::Sequence*>
+  getSequencesFor(const std::vector<disruptor::EventProcessor*>& processors) {
     std::vector<disruptor::Sequence*> sequences;
     sequences.reserve(processors.size());
     for (auto* p : processors) {
@@ -89,10 +90,11 @@ public:
   }
 
   // Java:
-  // public static long awaitNanos(final Object mutex, final long timeoutNanos) throws InterruptedException
+  // public static long awaitNanos(final Object mutex, final long timeoutNanos) throws
+  // InterruptedException
   static int64_t awaitNanos(std::condition_variable& cv,
-                           std::unique_lock<std::mutex>& lock,
-                           int64_t timeoutNanos) {
+                            std::unique_lock<std::mutex>& lock,
+                            int64_t timeoutNanos) {
     const auto millis = timeoutNanos / ONE_MILLISECOND_IN_NANOSECONDS;
     const auto nanos = timeoutNanos % ONE_MILLISECOND_IN_NANOSECONDS;
 
@@ -105,4 +107,4 @@ public:
   }
 };
 
-} // namespace disruptor::util
+}  // namespace disruptor::util

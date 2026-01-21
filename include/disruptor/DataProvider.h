@@ -10,6 +10,4 @@ public:
   virtual ~DataProvider() = default;
   virtual T& get(int64_t sequence) = 0;
 };
-} // namespace disruptor
-
-
+}  // namespace disruptor

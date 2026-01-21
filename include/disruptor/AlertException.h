@@ -7,7 +7,9 @@ namespace disruptor {
 
 class AlertException final : public std::exception {
 public:
-  const char* what() const noexcept override { return "AlertException"; }
+  const char* what() const noexcept override {
+    return "AlertException";
+  }
 
   // Java: public static final AlertException INSTANCE = new AlertException();
   static const AlertException& INSTANCE() {
@@ -16,6 +18,4 @@ public:
   }
 };
 
-} // namespace disruptor
-
-
+}  // namespace disruptor

@@ -17,7 +17,7 @@ class ExceptionHandlerSetting final {
 public:
   ExceptionHandlerSetting(EventHandlerIdentity& handlerIdentity,
                           ConsumerRepository<BarrierPtrT>& consumerRepository)
-      : handlerIdentity_(&handlerIdentity), consumerRepository_(&consumerRepository) {}
+    : handlerIdentity_(&handlerIdentity), consumerRepository_(&consumerRepository) {}
 
   void with(ExceptionHandler<T>& exceptionHandler) {
     EventProcessor& eventProcessor = consumerRepository_->getEventProcessorFor(*handlerIdentity_);
@@ -25,9 +25,11 @@ public:
     if (batch != nullptr) {
       batch->setExceptionHandler(exceptionHandler);
       auto barrier = consumerRepository_->getBarrierFor(*handlerIdentity_);
-      if (barrier) barrier->alert();
+      if (barrier)
+        barrier->alert();
     } else {
-      throw std::runtime_error("EventProcessor is not a BatchEventProcessor and does not support exception handlers");
+      throw std::runtime_error(
+        "EventProcessor is not a BatchEventProcessor and does not support exception handlers");
     }
   }
 
@@ -36,6 +38,4 @@ private:
   ConsumerRepository<BarrierPtrT>* consumerRepository_;
 };
 
-} // namespace disruptor::dsl
-
-
+}  // namespace disruptor::dsl

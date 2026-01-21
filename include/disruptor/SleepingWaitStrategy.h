@@ -16,16 +16,18 @@ class SleepingWaitStrategy final {
 public:
   static constexpr bool kIsBlockingStrategy = false;
 
-  SleepingWaitStrategy()
-      : SleepingWaitStrategy(DEFAULT_RETRIES, DEFAULT_SLEEP) {}
-  explicit SleepingWaitStrategy(int retries)
-      : SleepingWaitStrategy(retries, DEFAULT_SLEEP) {}
+  SleepingWaitStrategy() : SleepingWaitStrategy(DEFAULT_RETRIES, DEFAULT_SLEEP) {}
+
+  explicit SleepingWaitStrategy(int retries) : SleepingWaitStrategy(retries, DEFAULT_SLEEP) {}
+
   SleepingWaitStrategy(int retries, int64_t sleepTimeNs)
-      : retries_(retries), sleepTimeNs_(sleepTimeNs) {}
+    : retries_(retries), sleepTimeNs_(sleepTimeNs) {}
 
   template <typename Barrier>
-  int64_t waitFor(int64_t sequence, const Sequence & /*cursor*/,
-                  const Sequence &dependentSequence, Barrier &barrier) {
+  int64_t waitFor(int64_t sequence,
+                  const Sequence& /*cursor*/,
+                  const Sequence& dependentSequence,
+                  Barrier& barrier) {
     int64_t availableSequence;
     int counter = retries_;
 
@@ -46,7 +48,7 @@ private:
   int64_t sleepTimeNs_;
 
   template <typename Barrier>
-  int applyWaitMethod(Barrier &barrier, int counter) {
+  int applyWaitMethod(Barrier& barrier, int counter) {
     barrier.checkAlert();
 
     if (counter > SPIN_THRESHOLD) {
@@ -61,4 +63,4 @@ private:
   }
 };
 
-} // namespace disruptor
+}  // namespace disruptor

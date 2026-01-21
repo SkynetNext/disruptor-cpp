@@ -11,7 +11,8 @@ class RewindableException;
 class RewindHandler {
 public:
   virtual ~RewindHandler() = default;
-  virtual int64_t attemptRewindGetNextSequence(const RewindableException& e, int64_t startOfBatchSequence) = 0;
+  virtual int64_t attemptRewindGetNextSequence(const RewindableException& e,
+                                               int64_t startOfBatchSequence) = 0;
 };
 
-} // namespace disruptor
+}  // namespace disruptor

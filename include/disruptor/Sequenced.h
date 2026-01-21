@@ -24,6 +24,4 @@ public:
   virtual void publish(int64_t lo, int64_t hi) = 0;
 };
 
-} // namespace disruptor
-
-
+}  // namespace disruptor
