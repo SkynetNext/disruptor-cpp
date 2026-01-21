@@ -126,6 +126,11 @@ static void JMH_MultiProducerSingleConsumer_producing(benchmark::State& state) {
     e.value = 0;
     g_ringBuffer->publish(sequence);
   }
+  
+  // Set items processed to enable accurate throughput calculation
+  // Google Benchmark will calculate throughput from iterations, not from time
+  // This matches Java JMH Mode.Throughput which measures ops/time directly
+  state.SetItemsProcessed(state.iterations());
 }
 
 static auto* bm_JMH_MultiProducerSingleConsumer_producing = [] {
