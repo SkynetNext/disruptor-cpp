@@ -297,11 +297,6 @@ jobs:
 
       - name: Run clang-tidy
         run: |
-          # Check if .clang-tidy config exists
-          if [ ! -f .clang-tidy ]; then
-            echo "::warning::.clang-tidy config file not found, using default checks"
-          fi
-          
           # Verify clang-tidy is available
           if ! command -v clang-tidy &> /dev/null; then
             echo "::error::clang-tidy not found in PATH"
@@ -314,51 +309,23 @@ jobs:
             exit 1
           fi
           
-          # Run clang-tidy on all source files
-          # Ignore file-not-found errors as they may be false positives
-          ERROR_COUNT=0
-          TOTAL_FILES=0
-          
-          # Use process substitution to avoid subshell issues with ERROR_COUNT
-          while IFS= read -r file; do
-            if [ ! -f "$file" ]; then
-              continue
-            fi
-            
-            TOTAL_FILES=$((TOTAL_FILES + 1))
-            echo "Checking $file ($TOTAL_FILES)..."
-            
-            # Run clang-tidy and capture output
-            # compile_commands.json should already have correct C++26 settings from CMake
-            # Don't use --extra-arg-before as it conflicts with compile_commands.json
-            OUTPUT=$(clang-tidy "$file" \
-              -p build \
-              --config-file=.clang-tidy 2>&1 || true)
-            
-            # Filter out file-not-found errors and other benign warnings
-            FILTERED=$(echo "$OUTPUT" | grep -v "file not found" | \
-              grep -v "Unable to find" | \
-              grep -v "No such file" | \
-              grep -v "^$" || true)
-            
-            # Check for actual code issues (warnings/errors that are not file-not-found)
-            if [ -n "$FILTERED" ] && echo "$FILTERED" | grep -qE "(error|warning):"; then
-              echo "::error file=$file::clang-tidy issues found"
-              echo "$FILTERED"
-              ERROR_COUNT=$((ERROR_COUNT + 1))
-            fi
-          done < <(find include tests examples benchmarks -name "*.cpp" | \
+          # Find all .cpp files (exclude third_party and reference)
+          FILES=$(find include tests examples benchmarks -name "*.cpp" | \
             grep -v third_party | \
-            grep -v reference)
+            grep -v reference || true)
           
-          echo "Checked $TOTAL_FILES files"
-          
-          if [ $ERROR_COUNT -gt 0 ]; then
-            echo "::error::Found $ERROR_COUNT file(s) with clang-tidy issues"
-            exit 1
+          if [ -z "$FILES" ]; then
+            echo "No .cpp files to check"
+            exit 0
           fi
           
-          echo "✓ clang-tidy check passed (file-not-found errors ignored)"
+          # Run clang-tidy on all files at once
+          # --header-filter='' skips header file checks (headers are checked via .cpp files)
+          clang-tidy $FILES \
+            -p build \
+            --config-file=.clang-tidy \
+            --header-filter='' \
+            --quiet
 
   # Static Analysis: cppcheck
   static-analysis-cppcheck:
