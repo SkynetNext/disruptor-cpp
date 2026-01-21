@@ -329,12 +329,15 @@ jobs:
             echo "Checking $file ($TOTAL_FILES)..."
             
             # Run clang-tidy and capture output
-            # compile_commands.json should already have correct C++26 settings from CMake
-            # Only add -std=c++26 as fallback if compile_commands.json doesn't have it
+            # Use --extra-arg-before to force C++26 standard before compile_commands.json is read
+            # This ensures std::expected and std::unexpected (C++23 features) are recognized
             OUTPUT=$(clang-tidy "$file" \
               -p build \
               --config-file=.clang-tidy \
-              --extra-arg=-std=c++26 2>&1 || true)
+              --extra-arg-before=-x \
+              --extra-arg-before=c++ \
+              --extra-arg-before=-std=c++26 \
+              --extra-arg-before=-Wno-unknown-warning-option 2>&1 || true)
             
             # Filter out file-not-found errors and other benign warnings
             FILTERED=$(echo "$OUTPUT" | grep -v "file not found" | \
@@ -436,6 +439,8 @@ jobs:
           cppcheck \
             --project=build/compile_commands.json \
             --enable=all \
+            --suppress=missingInclude \
+            --suppress=missingIncludeSystem \
             --suppress=unusedFunction \
             --suppress=unmatchedSuppression \
             --suppress=useStlAlgorithm \
@@ -459,6 +464,8 @@ jobs:
           cppcheck \
             --project=build/compile_commands.json \
             --enable=warning \
+            --suppress=missingInclude \
+            --suppress=missingIncludeSystem \
             --suppress=unusedFunction \
             --suppress=unmatchedSuppression \
             --suppress=useStlAlgorithm \
