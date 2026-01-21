@@ -18,9 +18,9 @@
 #include <expected>
 #include <stdexcept>
 #ifndef NDEBUG
-#include <mutex>
-#include <thread>
-#include <unordered_map>
+#  include <mutex>
+#  include <thread>
+#  include <unordered_map>
 #endif
 
 namespace disruptor {
