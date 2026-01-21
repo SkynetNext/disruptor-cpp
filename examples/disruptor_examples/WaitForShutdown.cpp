@@ -2,6 +2,7 @@
 // reference/disruptor/src/examples/java/com/lmax/disruptor/examples/WaitForShutdown.java
 
 #include "disruptor/BlockingWaitStrategy.h"
+#include "disruptor/EventHandler.h"
 #include "disruptor/TimeoutException.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"

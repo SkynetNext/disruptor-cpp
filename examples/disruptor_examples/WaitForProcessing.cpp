@@ -2,6 +2,7 @@
 // reference/disruptor/src/examples/java/com/lmax/disruptor/examples/WaitForProcessing.java
 
 #include "disruptor/dsl/Disruptor.h"
+#include "disruptor/EventHandler.h"
 #include "disruptor/BlockingWaitStrategy.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 

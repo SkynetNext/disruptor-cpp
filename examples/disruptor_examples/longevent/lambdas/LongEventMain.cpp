@@ -3,7 +3,8 @@
 //
 // Java loops forever; C++ port runs a bounded number of iterations.
 
-#include "disruptor/EventTranslatorTwoArg.h"
+#include "disruptor/EventTranslatorOneArg.h"
+#include "disruptor/EventHandler.h"
 #include "disruptor/BlockingWaitStrategy.h"
 #include "disruptor/RingBuffer.h"
 #include "disruptor/dsl/Disruptor.h"

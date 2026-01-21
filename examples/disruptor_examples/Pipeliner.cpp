@@ -3,6 +3,7 @@
 
 #include "disruptor/BlockingWaitStrategy.h"
 #include "disruptor/EventFactory.h"
+#include "disruptor/EventHandler.h"
 #include "disruptor/RingBuffer.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
@@ -17,7 +18,7 @@ namespace {
 
 struct PipelinerEvent {
   int64_t input{0};
-  std::optional<std::string> result{};
+  std::optional<std::string> result;
 
   struct Factory final : public disruptor::EventFactory<PipelinerEvent> {
     PipelinerEvent newInstance() override { return PipelinerEvent(); }

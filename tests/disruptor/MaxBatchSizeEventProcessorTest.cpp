@@ -2,6 +2,7 @@
 
 #include "disruptor/BatchEventProcessorBuilder.h"
 #include "disruptor/BusySpinWaitStrategy.h"
+#include "disruptor/EventHandler.h"
 #include "disruptor/RingBuffer.h"
 #include "tests/disruptor/support/StubEvent.h"
 #include "tests/disruptor/test_support/CountDownLatch.h"

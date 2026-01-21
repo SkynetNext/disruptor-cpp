@@ -12,14 +12,15 @@
 
 namespace disruptor_examples::longevent {
 
+template <typename SequencerT>
 class LongEventProducer {
 public:
-  explicit LongEventProducer(disruptor::RingBuffer<LongEvent>& ringBuffer) : ringBuffer_(&ringBuffer) {}
+  explicit LongEventProducer(disruptor::RingBuffer<LongEvent, SequencerT>& ringBuffer) : ringBuffer_(&ringBuffer) {}
 
   void onData(ByteBuffer& bb) { ringBuffer_->publishEvent(TRANSLATOR, bb); }
 
 private:
-  disruptor::RingBuffer<LongEvent>* ringBuffer_;
+  disruptor::RingBuffer<LongEvent, SequencerT>* ringBuffer_;
 
   class Translator final : public disruptor::EventTranslatorOneArg<LongEvent, ByteBuffer> {
   public:

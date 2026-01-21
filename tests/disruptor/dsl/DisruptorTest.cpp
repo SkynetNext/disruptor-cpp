@@ -3,6 +3,7 @@
 #include "disruptor/BatchEventProcessor.h"
 #include "disruptor/BatchEventProcessorBuilder.h"
 #include "disruptor/BlockingWaitStrategy.h"
+#include "disruptor/EventHandler.h"
 #include "disruptor/EventTranslatorOneArg.h"
 #include "disruptor/EventTranslatorVararg.h"
 #include "disruptor/FatalExceptionHandler.h"

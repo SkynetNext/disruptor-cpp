@@ -5,6 +5,7 @@
 // runnable main() that exercises the handler.
 
 #include "disruptor/BlockingWaitStrategy.h"
+#include "disruptor/EventHandler.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
 

@@ -3,7 +3,6 @@
 
 #include "disruptor/BlockingWaitStrategy.h"
 #include "disruptor/EventFactory.h"
-#include "disruptor/EventPoller.h"
 #include "disruptor/RingBuffer.h"
 
 #include <cstdint>

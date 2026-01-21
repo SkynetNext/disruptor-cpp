@@ -2,11 +2,9 @@ name: Code Quality
 
 on:
   push:
-    branches:
-      - master
+    branches: [main, develop]
   pull_request:
-    branches:
-      - master
+    branches: [main, develop]
   workflow_dispatch:
   # Run on schedule (weekly) to catch regressions
   schedule:

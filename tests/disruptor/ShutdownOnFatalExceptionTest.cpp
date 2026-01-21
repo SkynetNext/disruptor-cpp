@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "disruptor/BlockingWaitStrategy.h"
+#include "disruptor/EventHandler.h"
 #include "disruptor/FatalExceptionHandler.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/dsl/ProducerType.h"

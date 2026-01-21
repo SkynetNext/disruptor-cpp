@@ -5,6 +5,7 @@
 // iterations.
 
 #include "disruptor/BlockingWaitStrategy.h"
+#include "disruptor/EventHandler.h"
 #include "disruptor/EventTranslatorThreeArg.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/dsl/ProducerType.h"
@@ -25,7 +26,7 @@ struct ITransportable {};
 struct ObjectBox {
   IMessage *message{nullptr};
   ITransportable *transportable{nullptr};
-  std::string string{};
+  std::string string;
 
   struct Factory final : public disruptor::EventFactory<ObjectBox> {
     ObjectBox newInstance() override { return ObjectBox(); }

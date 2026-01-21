@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "disruptor/BusySpinWaitStrategy.h"
+#include "disruptor/EventHandler.h"
 #include "disruptor/FatalExceptionHandler.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/dsl/ProducerType.h"
@@ -18,7 +19,7 @@ struct TestEvent {
   int64_t sequence{0};
   int64_t a{0};
   int64_t b{0};
-  std::string s{};
+  std::string s;
 
   struct Factory final : public disruptor::EventFactory<TestEvent> {
     TestEvent newInstance() override { return TestEvent(); }

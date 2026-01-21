@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "disruptor/EventHandler.h"
 #include "disruptor/SleepingWaitStrategy.h"
 #include "disruptor/dsl/Disruptor.h"
 #include "disruptor/util/DaemonThreadFactory.h"
