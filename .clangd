@@ -5,10 +5,6 @@ CompileFlags:
     - -ferror-limit=0
   Remove: [-W*]
 
-Diagnostics:
-  UnusedIncludes: None
-  MissingIncludes: None
-
 Index:
   Background: Build
 
