@@ -71,16 +71,32 @@ public:
                                         std::memory_order_acquire);
   }
 
+  // Java: VarHandle.getAndAdd() - uses acquire-release semantics.
+  // C++: Match Java semantics - relaxed fetch_add + acquire-release fence.
+  // This pattern matches get()/set() style and may provide better performance
+  // than memory_order_acq_rel on the atomic operation itself.
   virtual int64_t incrementAndGet() {
-    return value_.fetch_add(1, std::memory_order_acq_rel) + 1;
+    int64_t result = value_.fetch_add(1, std::memory_order_relaxed) + 1;
+    std::atomic_thread_fence(std::memory_order_acq_rel);
+    DISRUPTOR_TSAN_ACQUIRE(&value_);
+    DISRUPTOR_TSAN_RELEASE(&value_);
+    return result;
   }
 
   virtual int64_t addAndGet(int64_t increment) {
-    return value_.fetch_add(increment, std::memory_order_acq_rel) + increment;
+    int64_t result = value_.fetch_add(increment, std::memory_order_relaxed) + increment;
+    std::atomic_thread_fence(std::memory_order_acq_rel);
+    DISRUPTOR_TSAN_ACQUIRE(&value_);
+    DISRUPTOR_TSAN_RELEASE(&value_);
+    return result;
   }
 
   virtual int64_t getAndAdd(int64_t increment) {
-    return value_.fetch_add(increment, std::memory_order_acq_rel);
+    int64_t result = value_.fetch_add(increment, std::memory_order_relaxed);
+    std::atomic_thread_fence(std::memory_order_acq_rel);
+    DISRUPTOR_TSAN_ACQUIRE(&value_);
+    DISRUPTOR_TSAN_RELEASE(&value_);
+    return result;
   }
 
 private:
