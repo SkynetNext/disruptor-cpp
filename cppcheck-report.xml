@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<results version="2">
+    <cppcheck version="2.13.0"/>
+    <errors>
+        <error id="duplInheritedMember" severity="warning" msg="The class &apos;MultiProducerSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;&apos; defines member function with name &apos;addGatingSequences&apos; also defined in its parent class &apos;AbstractSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;&apos;." verbose="The class &apos;MultiProducerSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;&apos; defines member function with name &apos;addGatingSequences&apos; also defined in its parent class &apos;AbstractSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;&apos;." cwe="398" file0="tests/disruptor/BatchEventProcessorTest.cpp">
+            <location file="include/disruptor/MultiProducerSequencer.h" line="144" column="8" info="Derived function &apos;MultiProducerSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;::addGatingSequences&apos;"/>
+            <location file="include/disruptor/AbstractSequencer.h" line="64" column="8" info="Parent function &apos;AbstractSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;::addGatingSequences&apos;"/>
+            <symbol>MultiProducerSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;</symbol>
+            <symbol>addGatingSequences</symbol>
+            <symbol>AbstractSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;</symbol>
+        </error>
+        <error id="duplInheritedMember" severity="warning" msg="The class &apos;MultiProducerSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;&apos; defines member function with name &apos;removeGatingSequence&apos; also defined in its parent class &apos;AbstractSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;&apos;." verbose="The class &apos;MultiProducerSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;&apos; defines member function with name &apos;removeGatingSequence&apos; also defined in its parent class &apos;AbstractSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;&apos;." cwe="398" file0="tests/disruptor/BatchEventProcessorTest.cpp">
+            <location file="include/disruptor/MultiProducerSequencer.h" line="149" column="8" info="Derived function &apos;MultiProducerSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;::removeGatingSequence&apos;"/>
+            <location file="include/disruptor/AbstractSequencer.h" line="68" column="8" info="Parent function &apos;AbstractSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;::removeGatingSequence&apos;"/>
+            <symbol>MultiProducerSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;</symbol>
+            <symbol>removeGatingSequence</symbol>
+            <symbol>AbstractSequencer &lt; disruptor :: BusySpinWaitStrategy &gt;</symbol>
+        </error>
+        <error id="variableScope" severity="style" msg="The scope of the variable &apos;processNextEvent&apos; can be reduced." verbose="The scope of the variable &apos;processNextEvent&apos; can be reduced. Warning: Be careful when fixing this message, especially when there are inner loops. Here is an example where cppcheck will write that the scope for &apos;i&apos; can be reduced:\012void f(int x)\012{\012    int i = 0;\012    if (x) {\012        // it&apos;s safe to move &apos;int i = 0;&apos; here\012        for (int n = 0; n &lt; 10; ++n) {\012            // it is possible but not safe to move &apos;int i = 0;&apos; here\012            do_something(&amp;i);\012        }\012    }\012}\012When you see this message it is always safe to reduce the variable scope 1 level." cwe="398" file0="tests/disruptor/BatchEventProcessorTest.cpp">
+            <location file="include/disruptor/EventPoller.h" line="43" column="12"/>
+            <symbol>processNextEvent</symbol>
+        </error>
+        <error id="shadowFunction" severity="style" msg="Local variable &apos;next&apos; shadows outer function" verbose="Local variable &apos;next&apos; shadows outer function" cwe="398" file0="tests/disruptor/BatchEventProcessorTest.cpp">
+            <location file="include/disruptor/MultiProducerSequencer.h" line="85" column="13" info="Shadow variable"/>
+            <location file="include/disruptor/MultiProducerSequencer.h" line="47" column="11" info="Shadowed declaration"/>
+            <symbol>next</symbol>
+        </error>
+        <error id="constVariablePointer" severity="style" msg="Variable &apos;s&apos; can be declared as pointer to const" verbose="Variable &apos;s&apos; can be declared as pointer to const" cwe="398" file0="tests/disruptor/BatchEventProcessorTest.cpp">
+            <location file="include/disruptor/SequenceGroups.h" line="76" column="18" info="Variable &apos;s&apos; can be declared as pointer to const"/>
+            <symbol>s</symbol>
+        </error>
+        <error id="duplInheritedMember" severity="warning" msg="The class &apos;MultiProducerSequencer &lt; disruptor :: SleepingWaitStrategy &gt;&apos; defines member function with name &apos;addGatingSequences&apos; also defined in its parent class &apos;AbstractSequencer &lt; disruptor :: SleepingWaitStrategy &gt;&apos;." verbose="The class &apos;MultiProducerSequencer &lt; disruptor :: SleepingWaitStrategy &gt;&apos; defines member function with name &apos;addGatingSequences&apos; also defined in its parent class &apos;AbstractSequencer &lt; disruptor :: SleepingWaitStrategy &gt;&apos;." cwe="398" file0="tests/disruptor/BatchingTest.cpp">
+            <location file="include/disruptor/MultiProducerSequencer.h" line="144" column="8" info="Derived function &apos;MultiProducerSequencer &lt; disruptor :: SleepingWaitStrategy &gt;::addGatingSequences&apos;"/>
+            <location file="include/disruptor/AbstractSequencer.h" line="64" column="8" info="Parent function &apos;AbstractSequencer &lt; disruptor :: SleepingWaitStrategy &gt;::addGatingSequences&apos;"/>
+            <symbol>MultiProducerSequencer &lt; disruptor :: SleepingWaitStrategy &gt;</symbol>
+            <symbol>addGatingSequences</symbol>
+            <symbol>AbstractSequencer &lt; disruptor :: SleepingWaitStrategy &gt;</symbol>
+        </error>
+        <error id="duplInheritedMember" severity="warning" msg="The class &apos;MultiProducerSequencer &lt; disruptor :: SleepingWaitStrategy &gt;&apos; defines member function with name &apos;removeGatingSequence&apos; also defined in its parent class &apos;AbstractSequencer &lt; disruptor :: SleepingWaitStrategy &gt;&apos;." verbose="The class &apos;MultiProducerSequencer &lt; disruptor :: SleepingWaitStrategy &gt;&apos; defines member function with name &apos;removeGatingSequence&apos; also defined in its parent class &apos;AbstractSequencer &lt; disruptor :: SleepingWaitStrategy &gt;&apos;." cwe="398" file0="tests/disruptor/BatchingTest.cpp">
+            <location file="include/disruptor/MultiProducerSequencer.h" line="149" column="8" info="Derived function &apos;MultiProducerSequencer &lt; disruptor :: SleepingWaitStrategy &gt;::removeGatingSequence&apos;"/>
+            <location file="include/disruptor/AbstractSequencer.h" line="68" column="8" info="Parent function &apos;AbstractSequencer &lt; disruptor :: SleepingWaitStrategy &gt;::removeGatingSequence&apos;"/>
+            <symbol>MultiProducerSequencer &lt; disruptor :: SleepingWaitStrategy &gt;</symbol>
+            <symbol>removeGatingSequence</symbol>
+            <symbol>AbstractSequencer &lt; disruptor :: SleepingWaitStrategy &gt;</symbol>
+        </error>
+        <error id="knownConditionTrueFalse" severity="style" msg="Condition &apos;exceptionHandler_==nullptr&apos; is always false" verbose="Condition &apos;exceptionHandler_==nullptr&apos; is always false" cwe="570" file0="tests/disruptor/BatchingTest.cpp">
+            <location file="include/disruptor/BatchEventProcessor.h" line="72" column="27" info="Condition &apos;exceptionHandler_==nullptr&apos; is always false"/>
+        </error>
+        <error id="duplInheritedMember" severity="warning" msg="The class &apos;MultiProducerSequencer &lt; disruptor :: BlockingWaitStrategy &gt;&apos; defines member function with name &apos;addGatingSequences&apos; also defined in its parent class &apos;AbstractSequencer &lt; disruptor :: BlockingWaitStrategy &gt;&apos;." verbose="The class &apos;MultiProducerSequencer &lt; disruptor :: BlockingWaitStrategy &gt;&apos; defines member function with name &apos;addGatingSequences&apos; also defined in its parent class &apos;AbstractSequencer &lt; disruptor :: BlockingWaitStrategy &gt;&apos;." cwe="398" file0="tests/disruptor/MultiProducerSequencerTest.cpp">
+            <location file="include/disruptor/MultiProducerSequencer.h" line="144" column="8" info="Derived function &apos;MultiProducerSequencer &lt; disruptor :: BlockingWaitStrategy &gt;::addGatingSequences&apos;"/>
+            <location file="include/disruptor/AbstractSequencer.h" line="64" column="8" info="Parent function &apos;AbstractSequencer &lt; disruptor :: BlockingWaitStrategy &gt;::addGatingSequences&apos;"/>
+            <symbol>MultiProducerSequencer &lt; disruptor :: BlockingWaitStrategy &gt;</symbol>
+            <symbol>addGatingSequences</symbol>
+            <symbol>AbstractSequencer &lt; disruptor :: BlockingWaitStrategy &gt;</symbol>
+        </error>
+        <error id="duplInheritedMember" severity="warning" msg="The class &apos;MultiProducerSequencer &lt; disruptor :: BlockingWaitStrategy &gt;&apos; defines member function with name &apos;removeGatingSequence&apos; also defined in its parent class &apos;AbstractSequencer &lt; disruptor :: BlockingWaitStrategy &gt;&apos;." verbose="The class &apos;MultiProducerSequencer &lt; disruptor :: BlockingWaitStrategy &gt;&apos; defines member function with name &apos;removeGatingSequence&apos; also defined in its parent class &apos;AbstractSequencer &lt; disruptor :: BlockingWaitStrategy &gt;&apos;." cwe="398" file0="tests/disruptor/MultiProducerSequencerTest.cpp">
+            <location file="include/disruptor/MultiProducerSequencer.h" line="149" column="8" info="Derived function &apos;MultiProducerSequencer &lt; disruptor :: BlockingWaitStrategy &gt;::removeGatingSequence&apos;"/>
+            <location file="include/disruptor/AbstractSequencer.h" line="68" column="8" info="Parent function &apos;AbstractSequencer &lt; disruptor :: BlockingWaitStrategy &gt;::removeGatingSequence&apos;"/>
+            <symbol>MultiProducerSequencer &lt; disruptor :: BlockingWaitStrategy &gt;</symbol>
+            <symbol>removeGatingSequence</symbol>
+            <symbol>AbstractSequencer &lt; disruptor :: BlockingWaitStrategy &gt;</symbol>
+        </error>
+        <error id="variableScope" severity="style" msg="The scope of the variable &apos;availableSequence&apos; can be reduced." verbose="The scope of the variable &apos;availableSequence&apos; can be reduced. Warning: Be careful when fixing this message, especially when there are inner loops. Here is an example where cppcheck will write that the scope for &apos;i&apos; can be reduced:\012void f(int x)\012{\012    int i = 0;\012    if (x) {\012        // it&apos;s safe to move &apos;int i = 0;&apos; here\012        for (int n = 0; n &lt; 10; ++n) {\012            // it is possible but not safe to move &apos;int i = 0;&apos; here\012            do_something(&amp;i);\012        }\012    }\012}\012When you see this message it is always safe to reduce the variable scope 1 level." cwe="398" file0="tests/disruptor/PhasedBackoffWaitStrategyTest.cpp">
+            <location file="include/disruptor/PhasedBackoffWaitStrategy.h" line="67" column="13"/>
+            <symbol>availableSequence</symbol>
+        </error>
+        <error id="duplInheritedMember" severity="warning" msg="The class &apos;MultiProducerSequencer&apos; defines member function with name &apos;addGatingSequences&apos; also defined in its parent class &apos;AbstractSequencer&apos;." verbose="The class &apos;MultiProducerSequencer&apos; defines member function with name &apos;addGatingSequences&apos; also defined in its parent class &apos;AbstractSequencer&apos;." cwe="398" file0="tests/disruptor/RingBufferWithAssertingStubTest.cpp">
+            <location file="include/disruptor/MultiProducerSequencer.h" line="144" column="8" info="Derived function &apos;MultiProducerSequencer::addGatingSequences&apos;"/>
+            <location file="include/disruptor/AbstractSequencer.h" line="64" column="8" info="Parent function &apos;AbstractSequencer::addGatingSequences&apos;"/>
+            <symbol>MultiProducerSequencer</symbol>
+            <symbol>addGatingSequences</symbol>
+            <symbol>AbstractSequencer</symbol>
+        </error>
+        <error id="duplInheritedMember" severity="warning" msg="The class &apos;MultiProducerSequencer&apos; defines member function with name &apos;removeGatingSequence&apos; also defined in its parent class &apos;AbstractSequencer&apos;." verbose="The class &apos;MultiProducerSequencer&apos; defines member function with name &apos;removeGatingSequence&apos; also defined in its parent class &apos;AbstractSequencer&apos;." cwe="398" file0="tests/disruptor/RingBufferWithAssertingStubTest.cpp">
+            <location file="include/disruptor/MultiProducerSequencer.h" line="149" column="8" info="Derived function &apos;MultiProducerSequencer::removeGatingSequence&apos;"/>
+            <location file="include/disruptor/AbstractSequencer.h" line="68" column="8" info="Parent function &apos;AbstractSequencer::removeGatingSequence&apos;"/>
+            <symbol>MultiProducerSequencer</symbol>
+            <symbol>removeGatingSequence</symbol>
+            <symbol>AbstractSequencer</symbol>
+        </error>
+        <error id="duplInheritedMember" severity="warning" msg="The class &apos;SingleProducerSequencer&apos; defines member function with name &apos;addGatingSequences&apos; also defined in its parent class &apos;AbstractSequencer&apos;." verbose="The class &apos;SingleProducerSequencer&apos; defines member function with name &apos;addGatingSequences&apos; also defined in its parent class &apos;AbstractSequencer&apos;." cwe="398" file0="tests/disruptor/RingBufferWithAssertingStubTest.cpp">
+            <location file="include/disruptor/SingleProducerSequencer.h" line="178" column="8" info="Derived function &apos;SingleProducerSequencer::addGatingSequences&apos;"/>
+            <location file="include/disruptor/AbstractSequencer.h" line="64" column="8" info="Parent function &apos;AbstractSequencer::addGatingSequences&apos;"/>
+            <symbol>SingleProducerSequencer</symbol>
+            <symbol>addGatingSequences</symbol>
+            <symbol>AbstractSequencer</symbol>
+        </error>
+        <error id="duplInheritedMember" severity="warning" msg="The class &apos;SingleProducerSequencer&apos; defines member function with name &apos;removeGatingSequence&apos; also defined in its parent class &apos;AbstractSequencer&apos;." verbose="The class &apos;SingleProducerSequencer&apos; defines member function with name &apos;removeGatingSequence&apos; also defined in its parent class &apos;AbstractSequencer&apos;." cwe="398" file0="tests/disruptor/RingBufferWithAssertingStubTest.cpp">
+            <location file="include/disruptor/SingleProducerSequencer.h" line="183" column="8" info="Derived function &apos;SingleProducerSequencer::removeGatingSequence&apos;"/>
+            <location file="include/disruptor/AbstractSequencer.h" line="68" column="8" info="Parent function &apos;AbstractSequencer::removeGatingSequence&apos;"/>
+            <symbol>SingleProducerSequencer</symbol>
+            <symbol>removeGatingSequence</symbol>
+            <symbol>AbstractSequencer</symbol>
+        </error>
+        <error id="uselessOverride" severity="style" msg="The function &apos;onShutdown&apos; overrides a function in a base class but is identical to the overridden function" verbose="The function &apos;onShutdown&apos; overrides a function in a base class but is identical to the overridden function" file0="tests/disruptor/dsl/DisruptorTest.cpp">
+            <location file="tests/disruptor/dsl/stubs/DelayedEventHandler.h" line="39" column="8" info="Function in derived class"/>
+            <location file="include/disruptor/EventHandlerBase.h" line="24" column="16" info="Virtual function in base class"/>
+            <symbol>onShutdown</symbol>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &apos;keptProcessors&apos; is assigned a value that is never used." verbose="Variable &apos;keptProcessors&apos; is assigned a value that is never used." cwe="563" file0="tests/disruptor/dsl/DisruptorTest.cpp">
+            <location file="tests/disruptor/dsl/DisruptorTest.cpp" line="239" column="74"/>
+            <symbol>keptProcessors</symbol>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &apos;keptProcessors&apos; is assigned a value that is never used." verbose="Variable &apos;keptProcessors&apos; is assigned a value that is never used." cwe="563" file0="tests/disruptor/dsl/DisruptorTest.cpp">
+            <location file="tests/disruptor/dsl/DisruptorTest.cpp" line="507" column="74"/>
+            <symbol>keptProcessors</symbol>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &apos;keptProcessor&apos; is assigned a value that is never used." verbose="Variable &apos;keptProcessor&apos; is assigned a value that is never used." cwe="563" file0="tests/disruptor/dsl/DisruptorTest.cpp">
+            <location file="tests/disruptor/dsl/DisruptorTest.cpp" line="1054" column="46"/>
+            <symbol>keptProcessor</symbol>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &apos;keptProcessor&apos; is assigned a value that is never used." verbose="Variable &apos;keptProcessor&apos; is assigned a value that is never used." cwe="563" file0="tests/disruptor/dsl/DisruptorTest.cpp">
+            <location file="tests/disruptor/dsl/DisruptorTest.cpp" line="1090" column="46"/>
+            <symbol>keptProcessor</symbol>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &apos;keptProcessor&apos; is assigned a value that is never used." verbose="Variable &apos;keptProcessor&apos; is assigned a value that is never used." cwe="563" file0="tests/disruptor/dsl/DisruptorTest.cpp">
+            <location file="tests/disruptor/dsl/DisruptorTest.cpp" line="1128" column="46"/>
+            <symbol>keptProcessor</symbol>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &apos;Producer&apos; is assigned a value that is never used." verbose="Variable &apos;Producer&apos; is assigned a value that is never used." cwe="563" file0="examples/disruptor_examples/WaitForProcessing.cpp">
+            <location file="examples/disruptor_examples/WaitForProcessing.cpp" line="54" column="18"/>
+            <symbol>Producer</symbol>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &apos;Producer&apos; is assigned a value that is never used." verbose="Variable &apos;Producer&apos; is assigned a value that is never used." cwe="563" file0="examples/disruptor_examples/ThreeToOneDisruptor.cpp">
+            <location file="examples/disruptor_examples/ThreeToOneDisruptor.cpp" line="56" column="18"/>
+            <symbol>Producer</symbol>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &apos;Producer&apos; is assigned a value that is never used." verbose="Variable &apos;Producer&apos; is assigned a value that is never used." cwe="563" file0="examples/disruptor_examples/ShutdownOnError.cpp">
+            <location file="examples/disruptor_examples/ShutdownOnError.cpp" line="68" column="18"/>
+            <symbol>Producer</symbol>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &apos;Producer&apos; is assigned a value that is never used." verbose="Variable &apos;Producer&apos; is assigned a value that is never used." cwe="563" file0="examples/disruptor_examples/SequentialThreeConsumers.cpp">
+            <location file="examples/disruptor_examples/SequentialThreeConsumers.cpp" line="52" column="18"/>
+            <symbol>Producer</symbol>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &apos;Producer&apos; is assigned a value that is never used." verbose="Variable &apos;Producer&apos; is assigned a value that is never used." cwe="563" file0="examples/disruptor_examples/HandleExceptionOnTranslate.cpp">
+            <location file="examples/disruptor_examples/HandleExceptionOnTranslate.cpp" line="40" column="18"/>
+            <symbol>Producer</symbol>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &apos;Producer&apos; is assigned a value that is never used." verbose="Variable &apos;Producer&apos; is assigned a value that is never used." cwe="563" file0="examples/disruptor_examples/longevent/lambdas/LongEventMain.cpp">
+            <location file="examples/disruptor_examples/longevent/lambdas/LongEventMain.cpp" line="58" column="18"/>
+            <symbol>Producer</symbol>
+        </error>
+        <error id="checkersReport" severity="information" msg="Active checkers: 162/592 (use --checkers-report=&lt;filename&gt; to see details)" verbose="Active checkers: 162/592 (use --checkers-report=&lt;filename&gt; to see details)"/>
+    </errors>
+</results>
