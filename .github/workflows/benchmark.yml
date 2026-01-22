@@ -1,16 +1,13 @@
-name: CI
+name: Benchmark
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Test - Linux
-    # C++26 requires GCC 14+ / Clang 19+
+  benchmark:
+    name: Run Benchmarks
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -61,7 +58,7 @@ jobs:
           CMAKE_ARGS=(
             -B build
             -DCMAKE_BUILD_TYPE=Release
-            -DBUILD_TESTING=ON
+            -DBUILD_TESTING=OFF
             -DBUILD_BENCHMARKS=ON
             -DBUILD_EXAMPLES=ON
           )
@@ -83,11 +80,6 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel
 
-      - name: Run Tests
-        run: |
-          cd build
-          ctest --output-on-failure --parallel
-
       - name: Run Benchmarks
         run: |
           cd build
@@ -107,7 +99,6 @@ jobs:
   benchmark-comparison:
     name: Performance Comparison - C++ vs Java Disruptor
     runs-on: ubuntu-24.04
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code

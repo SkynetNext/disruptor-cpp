@@ -1,0 +1,89 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test - Linux
+    # C++26 requires GCC 14+ / Clang 19+
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup GCC
+        if: matrix.compiler == 'gcc'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-14 g++-14
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
+
+      - name: Setup Clang
+        if: matrix.compiler == 'clang'
+        run: |
+          sudo apt-get update
+          # Install GCC 14 first to get libstdc++ with C++23 support (std::expected)
+          sudo apt-get install -y gcc-14 g++-14
+          sudo apt-get install -y clang-19
+          # Install alternatives and explicitly set them
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 100
+          # Explicitly select Clang 19 (--set is required, --install alone doesn't select)
+          sudo update-alternatives --set clang /usr/bin/clang-19
+          sudo update-alternatives --set clang++ /usr/bin/clang++-19
+          # Verify the selection
+          echo "Clang version:"
+          clang++ --version
+          echo "Clang path:"
+          which clang++
+
+      - name: Install CMake
+        uses: jwlawson/actions-setup-cmake@v1.14
+        with:
+          # CMake 3.30+ required for full cxx_std_26 support
+          cmake-version: "3.30"
+
+      - name: Configure CMake
+        shell: bash
+        run: |
+          CMAKE_ARGS=(
+            -B build
+            -DCMAKE_BUILD_TYPE=Release
+            -DBUILD_TESTING=ON
+            -DBUILD_BENCHMARKS=ON
+            -DBUILD_EXAMPLES=ON
+          )
+          if [ "${{ matrix.compiler }}" == "gcc" ]; then
+            CMAKE_ARGS+=(-DCMAKE_CXX_COMPILER=g++)
+          else
+            # Use explicit path to ensure Clang 19 is used
+            CMAKE_ARGS+=(-DCMAKE_CXX_COMPILER=/usr/bin/clang++-19)
+            # Ensure Clang uses GCC 14's libstdc++ for C++23 features like std::expected
+            CMAKE_ARGS+=(-DCMAKE_CXX_FLAGS="-stdlib=libstdc++")
+            # Also set C compiler to avoid mismatch
+            CMAKE_ARGS+=(-DCMAKE_C_COMPILER=/usr/bin/clang-19)
+            echo "Using Clang 19 with GCC 14 libstdc++"
+            /usr/bin/clang++-19 --version
+          fi
+          # CMakeLists.txt sets CMAKE_CXX_STANDARD=26, CMake will handle the compiler flag
+          cmake "${CMAKE_ARGS[@]}"
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Run Tests
+        run: |
+          cd build
+          ctest --output-on-failure --parallel
