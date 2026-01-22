@@ -1,4 +1,7 @@
 ---
+# Only analyze headers from this project, not system/third-party headers
+HeaderFilterRegex: ".*/(include|tests|examples|benchmarks)/.*"
+
 # TODO(crbug.com/1282228): reenable google-readability-casting once it no
 # longer has as many false-positives.
 Checks: "-*,

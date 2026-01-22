@@ -234,12 +234,9 @@ TIDY_EXIT_CODE=$?
 echo "$TIDY_OUTPUT"
 
 # Count issues (rough estimate)
-if echo "$TIDY_OUTPUT" | grep -q "error:"; then
-  ERROR_COUNT=$(echo "$TIDY_OUTPUT" | grep -c "error:" || echo "0")
-fi
-if echo "$TIDY_OUTPUT" | grep -q "warning:"; then
-  WARNING_COUNT=$(echo "$TIDY_OUTPUT" | grep -c "warning:" || echo "0")
-fi
+# Use printf instead of echo to avoid "Broken pipe" errors
+ERROR_COUNT=$(printf '%s' "$TIDY_OUTPUT" | grep -c "error:" 2>/dev/null || echo "0")
+WARNING_COUNT=$(printf '%s' "$TIDY_OUTPUT" | grep -c "warning:" 2>/dev/null || echo "0")
 
 echo ""
 echo -e "${GREEN}=== Summary ===${NC}"
