@@ -52,8 +52,8 @@ TEST(EventPollerTest, shouldPollForEvents) {
   auto sequence =
     std::make_shared<disruptor::Sequence>();  // Default constructor uses INITIAL_VALUE (-1)
   auto& cursorSequence = sequencer.cursorSequence();
-  auto poller = disruptor::EventPoller<void*, Seq>::newInstance(provider, sequencer, sequence,
-                                                                cursorSequence, gatingArr.data(), 1);
+  auto poller = disruptor::EventPoller<void*, Seq>::newInstance(
+    provider, sequencer, sequence, cursorSequence, gatingArr.data(), 1);
 
   using PollerT = disruptor::EventPoller<void*, Seq>;
 
