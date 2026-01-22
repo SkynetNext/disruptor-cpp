@@ -18,7 +18,7 @@ namespace {
 
 struct KeyedEvent {
   int64_t key{0};
-  std::string data{};
+  std::string data;
 };
 
 struct KeyedEventFactory final : public disruptor::EventFactory<KeyedEvent> {
@@ -44,7 +44,7 @@ public:
 
 private:
   static constexpr size_t MAX_BATCH_SIZE = 100;
-  std::vector<std::string> batch_{};
+  std::vector<std::string> batch_;
   int64_t key_{0};
 
   void processBatch() {

@@ -1,18 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <array>
+#include <memory>
+#include <thread>
+
 #include "disruptor/AlertException.h"
 #include "disruptor/BusySpinWaitStrategy.h"
 #include "disruptor/NoOpEventProcessor.h"
 #include "disruptor/RingBuffer.h"
 #include "disruptor/Sequence.h"
-#include "disruptor/SequenceBarrier.h"
-#include "disruptor/util/Util.h"
 #include "tests/disruptor/support/DummyEventProcessor.h"
 #include "tests/disruptor/support/StubEvent.h"
 #include "tests/disruptor/test_support/CountDownLatch.h"
-
-#include <memory>
-#include <thread>
 
 namespace {
 template <typename RB>
@@ -66,8 +65,8 @@ TEST_F(SequenceBarrierTestFixture, shouldWaitForWorkCompleteWhereCompleteWorkThr
   disruptor::Sequence sequence2(expectedWorkSequence);
   disruptor::Sequence sequence3(expectedNumberMessages);
 
-  disruptor::Sequence* deps[] = {&sequence1, &sequence2, &sequence3};
-  auto sequenceBarrier = ringBuffer->newBarrier(deps, 3);
+  std::array<disruptor::Sequence*, 3> deps = {&sequence1, &sequence2, &sequence3};
+  auto sequenceBarrier = ringBuffer->newBarrier(deps.data(), 3);
 
   const int64_t completedWorkSequence = sequenceBarrier->waitFor(expectedWorkSequence);
   EXPECT_GE(completedWorkSequence, expectedWorkSequence);
@@ -77,7 +76,7 @@ TEST_F(SequenceBarrierTestFixture, shouldWaitForWorkCompleteWhereAllWorkersAreBl
   const int64_t expectedNumberMessages = 10;
   fillRingBuffer(*ringBuffer, expectedNumberMessages);
 
-  disruptor::support::DummyEventProcessor workers[3];
+  std::array<disruptor::support::DummyEventProcessor, 3> workers;
   for (auto& w : workers) {
     w.setSequence(expectedNumberMessages - 1);
   }
@@ -117,8 +116,8 @@ TEST_F(SequenceBarrierTestFixture, shouldInterruptDuringBusySpin) {
   CountDownLatchSequence sequence2(8, latch);
   CountDownLatchSequence sequence3(8, latch);
 
-  disruptor::Sequence* deps[] = {&sequence1, &sequence2, &sequence3};
-  auto sequenceBarrier = ringBuffer->newBarrier(deps, 3);
+  std::array<disruptor::Sequence*, 3> deps = {&sequence1, &sequence2, &sequence3};
+  auto sequenceBarrier = ringBuffer->newBarrier(deps.data(), 3);
 
   std::thread t([&] {
     EXPECT_THROW((void)sequenceBarrier->waitFor(expectedNumberMessages - 1),
@@ -134,7 +133,7 @@ TEST_F(SequenceBarrierTestFixture, shouldWaitForWorkCompleteWhereCompleteWorkThr
   const int64_t expectedNumberMessages = 10;
   fillRingBuffer(*ringBuffer, expectedNumberMessages);
 
-  disruptor::support::DummyEventProcessor eventProcessors[3];
+  std::array<disruptor::support::DummyEventProcessor, 3> eventProcessors;
   for (auto& p : eventProcessors) {
     p.setSequence(expectedNumberMessages - 2);
   }

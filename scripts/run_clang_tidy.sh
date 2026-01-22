@@ -118,23 +118,69 @@ if [ ! -d "third_party/benchmark/CMakeLists.txt" ]; then
   echo ""
 fi
 
+# Clean build directory to remove old CMake cache (especially important on Windows)
+if [ -d "$BUILD_DIR" ]; then
+  if [ -z "$QUIET" ]; then
+    echo -e "${YELLOW}Cleaning build directory to remove old CMake cache...${NC}"
+  fi
+  rm -rf "$BUILD_DIR"
+fi
+
 # Configure CMake
 echo -e "${GREEN}=== Configuring CMake ===${NC}"
 CMAKE_ARGS=(
   -B "$BUILD_DIR"
+  -G Ninja
   -DBUILD_BENCHMARKS=ON
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 )
 
-# Use clang if available (CI sets up clang/clang++ via update-alternatives)
-# Also use libc++ for better C++23 support (std::expected, etc.)
-if command -v clang++ &> /dev/null; then
+# This script uses Clang for building (required for clang-tidy)
+# - Linux: Clang uses libstdc++ (GCC's standard library) - matches CI configuration
+# - Windows: Clang uses MSVC's standard library (no -stdlib flag needed)
+
+# Check if Clang is available
+if ! command -v clang++ &> /dev/null; then
+  echo -e "${RED}Error: Clang is required for clang-tidy${NC}"
+  echo "Please install LLVM/Clang and ensure clang++ is in PATH"
+  exit 1
+fi
+
+# Detect Windows: Git Bash sets MSYSTEM to MINGW64/MINGW32, or OSTYPE to msys
+IS_WINDOWS=false
+case "$OSTYPE" in
+  msys|win32|cygwin)
+    IS_WINDOWS=true
+    ;;
+esac
+# Also check MSYSTEM (Git Bash sets this to MINGW64 or MINGW32)
+if [ "$IS_WINDOWS" = "false" ] && [ -n "$MSYSTEM" ]; then
+  case "$MSYSTEM" in
+    MINGW*)
+      IS_WINDOWS=true
+      ;;
+  esac
+fi
+
+# Configure Clang compiler
+CMAKE_ARGS+=(
+  -DCMAKE_C_COMPILER=clang
+  -DCMAKE_CXX_COMPILER=clang++
+)
+
+# Linux: Clang uses libstdc++ (GCC's standard library) - matches CI configuration
+# Windows: Clang uses MSVC's standard library, so no -stdlib flag needed
+if [ "$IS_WINDOWS" = "false" ]; then
   CMAKE_ARGS+=(
-    -DCMAKE_C_COMPILER="$(which clang)"
-    -DCMAKE_CXX_COMPILER="$(which clang++)"
-    -DCMAKE_CXX_FLAGS="-stdlib=libc++"
-    -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
+    -DCMAKE_CXX_FLAGS="-stdlib=libstdc++"
   )
+  if [ -z "$QUIET" ]; then
+    echo -e "${GREEN}Using Clang with libstdc++ (GCC's standard library)${NC}"
+  fi
+else
+  if [ -z "$QUIET" ]; then
+    echo -e "${GREEN}Using Clang (Windows: uses MSVC standard library)${NC}"
+  fi
 fi
 
 cmake "${CMAKE_ARGS[@]}" || {
@@ -225,18 +271,84 @@ fi
 # Count errors and warnings
 ERROR_COUNT=0
 WARNING_COUNT=0
+TIDY_EXIT_CODE=0
 
-# Run clang-tidy and capture output
-TIDY_OUTPUT=$(clang-tidy $FILES "${CLANG_TIDY_ARGS[@]}" 2>&1 || true)
-TIDY_EXIT_CODE=$?
+# Run clang-tidy on each file individually to get detailed warnings
+# This is necessary because clang-tidy only shows "warnings generated" when processing multiple files
+TIDY_OUTPUT=""
+FILE_NUM=0
 
-# Display output
-echo "$TIDY_OUTPUT"
+for file in $FILES; do
+  if [ ! -f "$file" ]; then
+    continue
+  fi
+  
+  FILE_NUM=$((FILE_NUM + 1))
+  if [ -z "$QUIET" ]; then
+    echo "[$FILE_NUM/$FILE_COUNT] Processing file $file..."
+  fi
+  
+  # Run clang-tidy on single file to get detailed output
+  FILE_OUTPUT=$(clang-tidy "$file" "${CLANG_TIDY_ARGS[@]}" 2>&1 || true)
+  FILE_EXIT=$?
+  
+  # Track exit code (fail if any file fails)
+  if [ $FILE_EXIT -ne 0 ]; then
+    TIDY_EXIT_CODE=$FILE_EXIT
+  fi
+  
+  # Filter out statistical noise (warnings generated, suppressed warnings, etc.)
+  # Only keep actual warnings and errors
+  FILTERED_OUTPUT=$(printf '%s' "$FILE_OUTPUT" | \
+    grep -v "warnings generated" | \
+    grep -v "Suppressed.*warnings" | \
+    grep -v "Use -header-filter" | \
+    grep -v "Use -system-headers" || true)
+  
+  # Only append if there are actual warnings/errors (not just statistics)
+  if [ -n "$FILTERED_OUTPUT" ]; then
+    TIDY_OUTPUT="${TIDY_OUTPUT}${FILTERED_OUTPUT}"$'\n'
+  fi
+done
+
+# Display output (limit to first 50 lines if too long, or show summary)
+if [ -z "$QUIET" ]; then
+  # Show first 50 lines of actual warnings/errors (skip "warnings generated" lines)
+  WARNING_LINES=$(printf '%s' "$TIDY_OUTPUT" | grep -E "(error:|warning:)" | head -50)
+  if [ -n "$WARNING_LINES" ]; then
+    echo -e "${YELLOW}=== Sample warnings/errors (first 50) ===${NC}"
+    echo "$WARNING_LINES"
+    echo ""
+    TOTAL_WARNINGS=$(printf '%s' "$TIDY_OUTPUT" | grep -c "warning:" 2>/dev/null || echo "0")
+    TOTAL_ERRORS=$(printf '%s' "$TIDY_OUTPUT" | grep -c "error:" 2>/dev/null || echo "0")
+    # Remove any whitespace/newlines
+    TOTAL_WARNINGS=$((TOTAL_WARNINGS + 0))
+    TOTAL_ERRORS=$((TOTAL_ERRORS + 0))
+    if [ "$TOTAL_WARNINGS" -gt 50 ] || [ "$TOTAL_ERRORS" -gt 50 ]; then
+      echo -e "${YELLOW}... (showing first 50, total: $TOTAL_WARNINGS warnings, $TOTAL_ERRORS errors)${NC}"
+      echo -e "${YELLOW}Use shell redirection to save full output: ./scripts/run_clang_tidy.sh > output.txt${NC}"
+    fi
+    echo ""
+  else
+    # No warnings/errors found, show full output
+    echo "$TIDY_OUTPUT"
+  fi
+else
+  # Quiet mode: only show errors
+  ERROR_LINES=$(printf '%s' "$TIDY_OUTPUT" | grep "error:" || true)
+  if [ -n "$ERROR_LINES" ]; then
+    echo "$ERROR_LINES"
+  fi
+fi
 
 # Count issues (rough estimate)
-# Use printf instead of echo to avoid "Broken pipe" errors
-ERROR_COUNT=$(printf '%s' "$TIDY_OUTPUT" | grep -c "error:" 2>/dev/null || echo "0")
-WARNING_COUNT=$(printf '%s' "$TIDY_OUTPUT" | grep -c "warning:" 2>/dev/null || echo "0")
+# Use grep + wc -l for reliable counting, then clean the result
+ERROR_COUNT=$(printf '%s' "$TIDY_OUTPUT" | grep "error:" 2>/dev/null | wc -l)
+WARNING_COUNT=$(printf '%s' "$TIDY_OUTPUT" | grep "warning:" 2>/dev/null | wc -l)
+
+# Remove whitespace and ensure numeric (handle Windows line endings)
+ERROR_COUNT=$((ERROR_COUNT + 0))
+WARNING_COUNT=$((WARNING_COUNT + 0))
 
 echo ""
 echo -e "${GREEN}=== Summary ===${NC}"
@@ -246,10 +358,10 @@ if [ "$ERROR_COUNT" -gt 0 ] || [ "$WARNING_COUNT" -gt 0 ]; then
 else
   echo -e "${GREEN}No issues found!${NC}"
 fi
-
 # Exit with appropriate code
 if [ "$TIDY_EXIT_CODE" -ne 0 ]; then
   exit "$TIDY_EXIT_CODE"
 fi
 
 exit 0
+

@@ -1,6 +1,8 @@
 // 1:1 port of:
 // reference/disruptor/src/examples/java/com/lmax/disruptor/examples/DynamicallyAddHandler.java
 
+#include <array>
+
 #include "disruptor/BatchEventProcessorBuilder.h"
 #include "disruptor/BlockingWaitStrategy.h"
 #include "disruptor/dsl/Disruptor.h"
@@ -57,8 +59,8 @@ int main() {
   DynamicHandler handler1;
   auto processor1 = builder.build(*ringBuffer, *barrier1, handler1);
 
-  disruptor::Sequence* deps[1] = {&processor1->getSequence()};
-  auto barrier2 = ringBuffer->newBarrier(deps, 1);
+  std::array<disruptor::Sequence*, 1> deps = {&processor1->getSequence()};
+  auto barrier2 = ringBuffer->newBarrier(deps.data(), 1);
   DynamicHandler handler2;
   auto processor2 = builder.build(*ringBuffer, *barrier2, handler2);
 
