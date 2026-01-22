@@ -5,7 +5,6 @@
 
 #include "ValueEvent.h"
 #include "disruptor/EventHandler.h"
-#include "disruptor/Sequence.h"
 
 #include <atomic>
 #include <cstdint>

@@ -171,9 +171,12 @@ if [ -n "$FILES_SPECIFIED" ]; then
   echo -e "${GREEN}=== Checking specified files ===${NC}"
   echo "Files: $FILES"
 else
-  # Find all .cpp, .hpp, .h files (exclude third_party and reference)
+  # Find only .cpp files (exclude third_party and reference)
+  # Note: Header files (.h, .hpp) are checked when included by .cpp files.
+  # Checking header files directly causes "expected exactly one compiler job"
+  # errors because clang-tidy treats them as precompiled headers.
   echo -e "${GREEN}=== Finding source files ===${NC}"
-  FILES=$(find include tests examples benchmarks -name "*.cpp" -o -name "*.hpp" -o -name "*.h" 2>/dev/null | \
+  FILES=$(find tests examples benchmarks -name "*.cpp" 2>/dev/null | \
     grep -v third_party | \
     grep -v reference || true)
   

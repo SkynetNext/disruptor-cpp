@@ -6,7 +6,6 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
-#include <cstdint>
 #include <future>
 #include <mutex>
 #include <thread>

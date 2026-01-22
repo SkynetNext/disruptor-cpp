@@ -107,8 +107,8 @@ CheckOptions:
     value: 1
   - key: performance-inefficient-vector-operation.VectorLikeClasses
     value: "::std::vector;::std::basic_string"
-
-ExtraArgs:
-  # b/382774818: disable unknown pragma warnings until we can figure out why
-  # unknown pragmas are being warned about.
-  - -Wno-unknown-pragmas
+# Note: ExtraArgs with -Wno-unknown-pragmas was removed because it causes
+# clang-tidy to fail with "expected exactly one compiler job" error when
+# processing header files. The flag gets misinterpreted as a file name.
+# If unknown pragma warnings are an issue, suppress them in the Checks list
+# or add -Wno-unknown-pragmas to CMAKE_CXX_FLAGS instead.
