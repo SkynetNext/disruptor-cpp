@@ -54,7 +54,32 @@ if(DISRUPTOR_PORTED_TEST_SOURCES)
     endif()
 
     include(GoogleTest)
-    gtest_discover_tests(disruptor_cpp_tests)
+    
+    # Check if MSan is enabled (MemorySanitizer interferes with gtest_discover_tests)
+    # MSan adds -fsanitize=memory to compiler/linker flags
+    # Check CMAKE_CXX_FLAGS, CMAKE_EXE_LINKER_FLAGS, and build-type specific flags
+    set(MSAN_DETECTED FALSE)
+    if(CMAKE_CXX_FLAGS MATCHES "-fsanitize=memory")
+        set(MSAN_DETECTED TRUE)
+    elseif(CMAKE_EXE_LINKER_FLAGS MATCHES "-fsanitize=memory")
+        set(MSAN_DETECTED TRUE)
+    elseif(CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE} MATCHES "-fsanitize=memory")
+        set(MSAN_DETECTED TRUE)
+    elseif(CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE} MATCHES "-fsanitize=memory")
+        set(MSAN_DETECTED TRUE)
+    endif()
+    
+    if(MSAN_DETECTED)
+        # For MSan builds, manually add the test executable as a single test
+        # because gtest_discover_tests fails due to MSan false positives during discovery
+        # The test executable will still run all GoogleTest tests and report individual results
+        message(STATUS "MSan detected: Using manual test registration instead of discovery")
+        add_test(NAME disruptor_cpp_tests COMMAND disruptor_cpp_tests)
+        set_tests_properties(disruptor_cpp_tests PROPERTIES TIMEOUT 300)
+    else()
+        # For non-MSan builds, use automatic test discovery
+        gtest_discover_tests(disruptor_cpp_tests)
+    endif()
 else()
     message(STATUS "No ported Disruptor tests found under tests/disruptor/**")
 endif()

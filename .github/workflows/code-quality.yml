@@ -116,7 +116,9 @@ jobs:
       - name: Configure CMake (MSan+UBSan)
         shell: bash
         env:
-          # Set MSan options during configuration to allow gtest_discover_tests to work
+          # Set MSan options during configuration
+          # Note: CMakeLists.txt detects MSan and uses manual test registration instead of gtest_discover_tests
+          # because MSan false positives during discovery prevent test registration
           MSAN_OPTIONS: "check_initialization_order=0:poison_in_dtor=0:print_stats=1:halt_on_error=0:exit_code=0:abort_on_error=0"
         run: |
           CMAKE_ARGS=(
@@ -137,15 +139,16 @@ jobs:
 
       - name: Build
         env:
-          # MSan options must be set during build because gtest_discover_tests runs the executable
+          # MSan options for build phase:
           # - check_initialization_order=0: Disable initialization order checking (reduces false positives from global constructors)
           # - poison_in_dtor=0: Don't poison memory in destructors (reduces false positives from system libraries)
           # - print_stats=1: Print statistics
           # - halt_on_error=0: Don't halt on first error (allows tests to continue despite GoogleTest init false positives)
-          # - exit_code=0: Exit with code 0 even if errors are detected (allows gtest_discover_tests to succeed)
-          # - abort_on_error=0: Don't abort on errors (allows gtest_discover_tests to complete)
+          # - exit_code=0: Exit with code 0 even if errors are detected
+          # - abort_on_error=0: Don't abort on errors
           # Note: GoogleTest initialization false positives occur because system libraries (libstdc++)
           # are not instrumented with MSan. This is a known limitation and not a real bug.
+          # CMakeLists.txt automatically detects MSan and uses manual test registration to avoid discovery issues.
           MSAN_OPTIONS: "check_initialization_order=0:poison_in_dtor=0:print_stats=1:halt_on_error=0:exit_code=0:abort_on_error=0"
         run: cmake --build build --config Debug --parallel 2
 
