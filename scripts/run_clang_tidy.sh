@@ -127,10 +127,13 @@ CMAKE_ARGS=(
 )
 
 # Use clang if available (CI sets up clang/clang++ via update-alternatives)
+# Also use libc++ for better C++23 support (std::expected, etc.)
 if command -v clang++ &> /dev/null; then
   CMAKE_ARGS+=(
     -DCMAKE_C_COMPILER="$(which clang)"
     -DCMAKE_CXX_COMPILER="$(which clang++)"
+    -DCMAKE_CXX_FLAGS="-stdlib=libc++"
+    -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
   )
 fi
 
