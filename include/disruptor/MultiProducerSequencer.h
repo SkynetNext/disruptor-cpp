@@ -13,7 +13,7 @@
 
 #include <atomic>
 #include <cstdint>
-#include <expected>
+#include "Expected.h"
 #include <stdexcept>
 #include <vector>
 
@@ -72,13 +72,13 @@ public:
     return nextSequence;
   }
 
-  std::expected<int64_t, Error> tryNext() {
+  Expected<int64_t, Error> tryNext() {
     return tryNext(1);
   }
 
-  std::expected<int64_t, Error> tryNext(int n) {
+  Expected<int64_t, Error> tryNext(int n) {
     if (n < 1) [[unlikely]] {
-      return std::unexpected(Error::invalid_argument("n must be > 0"));
+      return Unexpected<Error>(Error::invalid_argument("n must be > 0"));
     }
 
     int64_t current;
@@ -89,7 +89,7 @@ public:
 
       auto snap = this->gatingSequences_.load(std::memory_order_acquire);
       if (!hasAvailableCapacity(snap.get(), n, current)) [[unlikely]] {
-        return std::unexpected(Error::insufficient_capacity());
+        return Unexpected<Error>(Error::insufficient_capacity());
       }
     } while (!this->cursor_.compareAndSet(current, next));
 

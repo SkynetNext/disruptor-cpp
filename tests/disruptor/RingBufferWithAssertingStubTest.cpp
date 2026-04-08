@@ -4,7 +4,7 @@
 #include "disruptor/RingBuffer.h"
 #include "tests/disruptor/support/StubEvent.h"
 
-#include <expected>
+#include "disruptor/Expected.h"
 #include <random>
 
 namespace {
@@ -37,11 +37,11 @@ public:
     return lastValue_;
   }
 
-  std::expected<int64_t, disruptor::Error> tryNext() {
+  disruptor::Expected<int64_t, disruptor::Error> tryNext() {
     return next();
   }
 
-  std::expected<int64_t, disruptor::Error> tryNext(int n) {
+  disruptor::Expected<int64_t, disruptor::Error> tryNext(int n) {
     return next(n);
   }
 

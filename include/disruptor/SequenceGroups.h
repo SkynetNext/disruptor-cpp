@@ -2,6 +2,7 @@
 // 1:1 port of com.lmax.disruptor.SequenceGroups
 // Source: reference/disruptor/src/main/java/com/lmax/disruptor/SequenceGroups.java
 
+#include "AtomicSharedPtr.h"
 #include "Cursored.h"
 #include "Sequence.h"
 
@@ -19,7 +20,7 @@ public:
   // C++ port uses atomic shared_ptr to an immutable vector snapshot.
   template <typename Holder>
   static void addSequences(Holder& holder,
-                           std::atomic<std::shared_ptr<std::vector<Sequence*>>>& updater,
+                           AtomicSharedPtr<std::vector<Sequence*>>& updater,
                            const Cursored& cursor,
                            Sequence* const* sequencesToAdd,
                            int count) {
@@ -59,7 +60,7 @@ public:
 
   template <typename Holder>
   static bool removeSequence(Holder& holder,
-                             std::atomic<std::shared_ptr<std::vector<Sequence*>>>& updater,
+                             AtomicSharedPtr<std::vector<Sequence*>>& updater,
                              Sequence& sequence) {
     (void)holder;
     int numToRemove = 0;

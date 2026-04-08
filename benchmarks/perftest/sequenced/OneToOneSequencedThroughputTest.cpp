@@ -42,9 +42,9 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cstdio>
 #include <exception>
 #include <memory>
-#include <print>
 #include <thread>
 
 namespace {
@@ -202,15 +202,15 @@ public:
 
     const int availableProcessors = std::thread::hardware_concurrency();
     if (getRequiredProcessorCount() > availableProcessors) {
-      std::print(
+      std::fprintf(stderr,
         "*** Warning ***: your system has insufficient processors to execute the test efficiently. ");
-      std::print("Processors required = {} available = {}\n", getRequiredProcessorCount(),
+      std::fprintf(stderr, "Processors required = %d available = %d\n", getRequiredProcessorCount(),
                  availableProcessors);
     }
 
     std::array<PerfTestContext, kRuns> contexts;
 
-    std::print("Starting Disruptor tests\n");
+    std::fprintf(stderr, "Starting Disruptor tests\n");
     for (int i = 0; i < kRuns; i++) {
       // Java: System.gc(); (C++ doesn't have explicit GC, but we can hint)
       // Note: In C++, we rely on RAII and the fact that runDisruptorPass() cleans up threads
@@ -223,8 +223,8 @@ public:
       int64_t ops = context.getDisruptorOps();
       double batchPercent = context.getBatchPercent() * 100.0;
       double avgBatchSize = context.getAverageBatchSize();
-      std::print("Run {}, Disruptor={} ops/sec BatchPercent={:.2f}% AverageBatchSize={:.0f}\n", i,
-                 ops, batchPercent, avgBatchSize);
+      std::fprintf(stderr, "Run %d, Disruptor=%lld ops/sec BatchPercent=%.2f%% AverageBatchSize=%.0f\n", i,
+                 (long long)ops, batchPercent, avgBatchSize);
     }
   }
 
@@ -262,13 +262,13 @@ void PerfTest_OneToOneSequencedThroughputTest(benchmark::State& state) {
     // Print header and processor check (like Java's testImplementations())
     const int availableProcessors = std::thread::hardware_concurrency();
     if (test->getRequiredProcessorCount() > availableProcessors) {
-      std::print(
+      std::fprintf(stderr,
         "*** Warning ***: your system has insufficient processors to execute the test efficiently. ");
-      std::print("Processors required = {} available = {}\n", test->getRequiredProcessorCount(),
+      std::fprintf(stderr, "Processors required = %d available = %d\n", test->getRequiredProcessorCount(),
                  availableProcessors);
     }
     if (!headerPrinted) {
-      std::print("Starting Disruptor tests\n");
+      std::fprintf(stderr, "Starting Disruptor tests\n");
       headerPrinted = true;
     }
   }
@@ -283,8 +283,8 @@ void PerfTest_OneToOneSequencedThroughputTest(benchmark::State& state) {
     int64_t ops = context.getDisruptorOps();
     double batchPercent = context.getBatchPercent() * 100.0;
     double avgBatchSize = context.getAverageBatchSize();
-    std::print("Run {}, Disruptor={} ops/sec BatchPercent={:.2f}% AverageBatchSize={:.0f}\n",
-               runCounter++, ops, batchPercent, avgBatchSize);
+    std::fprintf(stderr, "Run %d, Disruptor=%lld ops/sec BatchPercent=%.2f%% AverageBatchSize=%.0f\n",
+               runCounter++, (long long)ops, batchPercent, avgBatchSize);
 
     // Report to Google Benchmark for statistics
     state.counters["ops_per_sec"] =

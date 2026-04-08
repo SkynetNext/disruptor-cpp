@@ -72,6 +72,23 @@ if (UNIX AND NOT APPLE)
     endif()
 endif()
 
+# Aeron IPC Ping-Pong benchmark (standalone executable, requires aeronmd running)
+set(AERON_CLIENT_LIB "${CMAKE_SOURCE_DIR}/reference/aeron/cppbuild/Release/lib/libaeron_client.a")
+set(AERON_CLIENT_INCLUDE "${CMAKE_SOURCE_DIR}/reference/aeron/aeron-client/src/main/cpp")
+if(EXISTS ${AERON_CLIENT_LIB} AND EXISTS ${AERON_CLIENT_INCLUDE}/Aeron.h)
+    message(STATUS "Found pre-built Aeron client library")
+    add_executable(aeron_ipc_pingpong
+        ${CMAKE_CURRENT_SOURCE_DIR}/aeron/AeronIpcPingPong.cpp
+    )
+    target_include_directories(aeron_ipc_pingpong PRIVATE ${AERON_CLIENT_INCLUDE})
+    target_link_libraries(aeron_ipc_pingpong PRIVATE ${AERON_CLIENT_LIB} Threads::Threads)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(aeron_ipc_pingpong PRIVATE -O3 -march=native -mtune=native -Wno-error)
+    endif()
+else()
+    message(STATUS "Aeron client not built. Run: cd reference/aeron && cppbuild/cppbuild")
+endif()
+
 target_include_directories(disruptor_cpp_benchmarks
     PRIVATE
         ${CMAKE_SOURCE_DIR}/include

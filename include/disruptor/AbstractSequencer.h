@@ -3,6 +3,7 @@
 // Source:
 // reference/disruptor/src/main/java/com/lmax/disruptor/AbstractSequencer.java
 
+#include "AtomicSharedPtr.h"
 #include "Cursored.h"
 #include "Sequence.h"
 #include "Sequencer.h"
@@ -99,7 +100,7 @@ protected:
   int bufferSize_;
   WaitStrategyT* waitStrategy_;
   Sequence cursor_;
-  std::atomic<std::shared_ptr<std::vector<Sequence*>>> gatingSequences_;
+  AtomicSharedPtr<std::vector<Sequence*>> gatingSequences_;
 };
 
 }  // namespace disruptor

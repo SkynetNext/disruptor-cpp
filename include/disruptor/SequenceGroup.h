@@ -2,6 +2,7 @@
 // 1:1 port of com.lmax.disruptor.SequenceGroup
 // Source: reference/disruptor/src/main/java/com/lmax/disruptor/SequenceGroup.java
 
+#include "AtomicSharedPtr.h"
 #include "Cursored.h"
 #include "Sequence.h"
 #include "SequenceGroups.h"
@@ -66,7 +67,7 @@ public:
   }
 
 private:
-  std::atomic<std::shared_ptr<std::vector<Sequence*>>> sequences_;
+  AtomicSharedPtr<std::vector<Sequence*>> sequences_;
 };
 
 }  // namespace disruptor

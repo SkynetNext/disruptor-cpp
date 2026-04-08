@@ -20,7 +20,7 @@
 
 #include <array>
 #include <cstdint>
-#include <expected>
+#include "Expected.h"
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -137,11 +137,11 @@ public:
     return sequencer().next(n);
   }
 
-  std::expected<int64_t, Error> tryNext() {
+  Expected<int64_t, Error> tryNext() {
     return sequencer().tryNext();
   }
 
-  std::expected<int64_t, Error> tryNext(int n) {
+  Expected<int64_t, Error> tryNext(int n) {
     return sequencer().tryNext(n);
   }
 
